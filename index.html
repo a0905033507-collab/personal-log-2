@@ -1,0 +1,1017 @@
+<!doctype html>
+<!--
+  Personal Log (Mobile Only)
+
+  This single‑page web application replicates the functionality and design of the
+  original multi‑device Personal Log, but is simplified to run entirely on a
+  single device with no dependencies on Firebase or any external backend.
+  All data is stored in the browser's LocalStorage. The UI remains
+  responsive but focuses on mobile usage — the layout defaults to a single
+  column on small screens and collapses navigation into a simple list at
+  the top of the page.
+
+  To deploy this site for personal use, simply upload this file as
+  index.html to any static host (GitHub Pages, Netlify, Vercel) or open it
+  directly on your phone.
+-->
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Personal Log (Mobile) | 健身・日記・學習・收支</title>
+
+  <!-- Chart.js for charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Markmap for mind maps -->
+  <script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.17.2/dist/browser/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.17.2/dist/browser/index.min.js"></script>
+
+  <style>
+    /*
+      THEME & VARIABLES
+
+      A warm palette with moderate brightness and low–medium saturation. Each
+      functional category has its own accent colour. The layout adapts to
+      mobile first: on small screens, content is presented in a single
+      column, and navigation controls are stacked for easy thumb reach.
+    */
+    :root{
+      --bg: #f6f2ee;
+      --panel: #fffaf5;
+      --card: #ffffff;
+      --text: #2a2521;
+      --muted: #6f655c;
+      --border: rgba(60,45,35,.12);
+      --shadow: 0 8px 20px rgba(30,20,10,.10);
+      --shadow2: 0 4px 12px rgba(30,20,10,.08);
+
+      --fit: #ffb277;
+      --diary: #ff8ea1;
+      --learn: #7fd2b8;
+      --money: #7bb2ff;
+      --accent: #d2794a;
+      --danger: #c84c4c;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+      background: radial-gradient(900px 500px at 30% -5%, rgba(210,121,74,.12), transparent 55%),
+                  radial-gradient(700px 400px at 90% 15%, rgba(123,178,255,.12), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+    }
+    /* Layout container: sidebar replaced by top nav for mobile. */
+    .app{
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+    /* Top navigation bar */
+    .topnav{
+      display:flex;
+      flex-direction:column;
+      padding:12px 16px;
+      background: linear-gradient(180deg, rgba(255,250,245,.92), rgba(246,242,238,.90));
+      border-bottom:1px solid var(--border);
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter:blur(6px);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand h1{
+      font-size:16px;
+      margin:0;
+    }
+    .brand p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.4;
+    }
+    .nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+    .nav button{
+      flex:1 1 calc(50% - 8px);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.60);
+      cursor:pointer;
+      text-align:left;
+      transition:.15s transform, .15s background;
+    }
+    .nav button:hover{transform: translateY(-1px); background: rgba(255,255,255,.75);}    
+    .nav button.active{
+      background: rgba(255,255,255,.92);
+      border-color: rgba(210,121,74,.35);
+      box-shadow: var(--shadow2);
+    }
+    .dot{width:8px;height:8px;border-radius:99px;}
+    .dot.fit{background:var(--fit)}
+    .dot.diary{background:var(--diary)}
+    .dot.learn{background:var(--learn)}
+    .dot.money{background:var(--money)}
+    .small{font-size:11px;color:var(--muted)}
+    .top-actions{
+      display:flex;
+      gap:6px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .top-actions button, .top-actions label{
+      flex:1 1 calc(50% - 6px);
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.55);
+      border-radius:10px;
+      padding:8px 10px;
+      cursor:pointer;
+      font-size:12px;
+      text-align:center;
+    }
+    .top-actions button:hover, .top-actions label:hover{background: rgba(255,255,255,.70);}    
+    .top-actions input{display:none}
+
+    .main{
+      flex:1;
+      padding:16px;
+      width:100%;
+      max-width:900px;
+      margin:0 auto;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      margin-bottom:12px;
+    }
+    .title h2{margin:0;font-size:20px;letter-spacing:.2px}
+    .title p{margin:4px 0 0;color:var(--muted);font-size:12px}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 8px;
+      border-radius:99px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.65);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .pill.fit{border-color:rgba(255,178,119,.35)}
+    .pill.diary{border-color:rgba(255,142,161,.35)}
+    .pill.learn{border-color:rgba(127,210,184,.35)}
+    .pill.money{border-color:rgba(123,178,255,.35)}
+    .grid{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .card{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.78);
+      border-radius:16px;
+      box-shadow: var(--shadow2);
+      padding:12px;
+    }
+    .form{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .row label{
+      width:90px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    input, select, textarea{
+      flex:1;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:8px 8px;
+      background: rgba(255,255,255,.85);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    textarea{min-height:80px; resize:vertical; line-height:1.4}
+    .btns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      flex:1;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:8px 10px;
+      cursor:pointer;
+      background: rgba(255,255,255,.75);
+      font-size:12px;
+    }
+    .btn.primary{
+      background: rgba(210,121,74,.18);
+      border-color: rgba(210,121,74,.35);
+    }
+    .btn.danger{
+      background: rgba(200,76,76,.14);
+      border-color: rgba(200,76,76,.30);
+      color:#7a1f1f;
+    }
+    .btn:hover{background: rgba(255,255,255,.88)}
+    .btn.primary:hover{background: rgba(210,121,74,.22)}
+    .btn.danger:hover{background: rgba(200,76,76,.18)}
+
+    .list{display:flex;flex-direction:column;gap:8px;}
+    .item{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.78);
+      border-radius:14px;
+      padding:10px;
+      box-shadow: var(--shadow2);
+    }
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+    .meta b{color:var(--text); font-weight:600;}
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:2px 6px;
+      border-radius:99px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.65);
+      font-size:11px;
+      color:var(--muted);
+    }
+    .kpi{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .kpi .box{
+      flex:1;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.70);
+      border-radius:14px;
+      padding:8px;
+      min-width:70px;
+    }
+    .kpi .n{font-size:14px;font-weight:700;margin-top:2px}
+    .kpi .t{font-size:11px;color:var(--muted)}
+
+    .split{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .folder{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.65);
+      padding:8px;
+    }
+    .folder h4{
+      margin:0 0 6px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.2px;
+    }
+    .tree{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      max-height:260px;
+      overflow:auto;
+      padding-right:2px;
+    }
+    .tree button{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.70);
+      border-radius:10px;
+      padding:6px 8px;
+      cursor:pointer;
+      font-size:11px;
+      color:var(--text);
+      text-align:left;
+    }
+    .tree button.active{
+      border-color: rgba(210,121,74,.35);
+      background: rgba(255,255,255,.85);
+    }
+    .hint{font-size:11px;color:var(--muted);line-height:1.4}
+    canvas{max-width:100%;}
+    .chart-wrap{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.70);
+      border-radius:14px;
+      padding:8px;
+      box-shadow: var(--shadow2);
+    }
+    .table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 4px;
+      font-size:11px;
+    }
+    .table th{
+      text-align:left;
+      color:var(--muted);
+      font-weight:600;
+      padding:0 4px;
+    }
+    .table td{
+      padding:6px 4px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.68);
+      border-radius:8px;
+    }
+    .right{text-align:right;}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topnav">
+    <div class="brand">
+      <div style="font-size:18px;line-height:1">🗂️</div>
+      <div>
+        <h1>Personal Log</h1>
+        <p>健身・日記・學習・收支<br/>資料僅存於本機瀏覽器</p>
+      </div>
+    </div>
+    <div class="nav" id="nav">
+      <button data-view="fitness" class="active"><span class="dot fit"></span> 🏋️ 健身 <span class="small">Workout</span></button>
+      <button data-view="diary"><span class="dot diary"></span> 📓 日記 <span class="small">Diary</span></button>
+      <button data-view="learning"><span class="dot learn"></span> 📚 學習 <span class="small">Learning</span></button>
+      <button data-view="finance"><span class="dot money"></span> 💰 收支 <span class="small">Finance</span></button>
+    </div>
+    <div class="top-actions">
+      <button id="btnExport">匯出資料</button>
+      <label for="importFile">匯入資料<input id="importFile" type="file" accept="application/json"/></label>
+      <button id="btnReset" class="danger" style="flex-basis:100%">清除所有資料</button>
+    </div>
+    <div style="margin-top:8px" class="hint">建議：偶爾匯出備份。若清除瀏覽器資料，本網站記錄也會一併消失。</div>
+  </header>
+  <main class="main">
+    <div id="view-fitness" class="view"></div>
+    <div id="view-diary" class="view" style="display:none"></div>
+    <div id="view-learning" class="view" style="display:none"></div>
+    <div id="view-finance" class="view" style="display:none"></div>
+  </main>
+</div>
+
+<script>
+/* =========================
+   Local Storage & State Management
+   This mobile version stores all records in the browser's LocalStorage. Each
+   category is stored as an array under a single key. There is no remote
+   synchronisation.
+========================= */
+const STORAGE_KEY = 'personal_log_mobile_v1';
+const defaultState = () => ({ workouts: [], diaries: [], learnings: [], transactions: [], subscriptions: [] });
+let state = defaultState();
+function saveStateLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function loadStateLocal(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return defaultState(); const parsed = JSON.parse(raw); return Object.assign(defaultState(), parsed); }catch(e){ return defaultState(); }}
+
+/* =========================
+   Utilities
+========================= */
+function uid(prefix='id'){ return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16); }
+function pad2(n){ return String(n).padStart(2,'0'); }
+function toISODate(d){ const y=d.getFullYear(), m=pad2(d.getMonth()+1), day=pad2(d.getDate()); return `${y}-${m}-${day}`; }
+function toMonthKey(dateStr){ const d=new Date(dateStr); const y=d.getFullYear(), m=pad2(d.getMonth()+1); return `${y}-${m}`; }
+function fmtDateTime(dateStr){ const d=new Date(dateStr); if(Number.isNaN(d.getTime())) return dateStr; return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function fmtMinutes(min){ const h=Math.floor(min/60); const m=min%60; if(h<=0) return `${m} 分`; if(m===0) return `${h} 小時`; return `${h} 小時 ${m} 分`; }
+function diffMinutes(startHHMM,endHHMM){ const [sh,sm]=startHHMM.split(':').map(Number); const [eh,em]=endHHMM.split(':').map(Number); let start=sh*60+sm; let end=eh*60+em; if(end<start) end+=24*60; return end-start; }
+function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+function groupBy(arr,keyFn){ return arr.reduce((acc,x)=>{ const k=keyFn(x); (acc[k] ||= []).push(x); return acc; },{}); }
+function escapeHtml(str){ return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+
+/* =========================
+   Navigation & Top Controls
+========================= */
+const nav = document.getElementById('nav');
+nav.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-view]');
+  if(!btn) return;
+  const view = btn.dataset.view;
+  document.querySelectorAll('.nav button').forEach(b=> b.classList.toggle('active', b===btn));
+  document.querySelectorAll('.view').forEach(v=> v.style.display='none');
+  document.getElementById('view-'+view).style.display='block';
+  renderAll();
+});
+
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `personal_log_mobile_backup_${toISODate(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+document.getElementById('importFile').addEventListener('change', async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  try{
+    const text = await f.text();
+    const imported = JSON.parse(text);
+    state = Object.assign(defaultState(), imported);
+    saveStateLocal();
+    renderAll();
+    alert('匯入完成');
+  }catch(err){ alert('匯入失敗：檔案格式不正確'); }
+  finally{ e.target.value=''; }
+});
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!confirm('確定要清除所有資料？此操作不可還原。')) return;
+  state = defaultState();
+  saveStateLocal();
+  renderAll();
+});
+
+/* =========================
+   Fitness (Workout) Section
+========================= */
+let fitnessLineChart = null;
+function fitnessTemplate(){
+  return `\
+    <div class="header">\
+      <div class="title">\
+        <h2>🏋️ 健身紀錄</h2>\
+        <p>輸入開始/結束/休息，系統自動算實際訓練時間，並以「月」為單位整理重量進步。</p>\
+      </div>\
+      <span class="pill fit">Workout</span>\
+    </div>\
+    <div class="grid">\
+      <div class="card">\
+        <h3>新增訓練</h3>\
+        <div class="form">\
+          <div class="row"><label>日期</label><input id="fit_date" type="date" /></div>\
+          <div class="row"><label>動作/項目</label><input id="fit_exercise" placeholder="例：深蹲 / 卧推 / 硬舉" /></div>\
+          <div class="row"><label>開始時間</label><input id="fit_start" type="time" /></div>\
+          <div class="row"><label>結束時間</label><input id="fit_end" type="time" /></div>\
+          <div class="row"><label>休息時間</label><input id="fit_rest" type="number" min="0" step="1" placeholder="分鐘" /></div>\
+          <div class="row"><label>重量</label><input id="fit_weight" type="number" min="0" step="0.5" placeholder="kg" /></div>\
+          <div class="row"><label>備註</label><input id="fit_note" placeholder="可選" /></div>\
+          <div class="btns">\
+            <button class="btn primary" id="fit_add">新增</button>\
+            <button class="btn" id="fit_fill_now">自動帶入今天</button>\
+          </div>\
+          <div class="hint">\
+            實際訓練時間 = (結束-開始) - 休息時間。<br/>\
+            若結束時間早於開始時間，視為跨日（例如 23:30 到 00:30）。\
+          </div>\
+        </div>\
+      </div>\
+      <div class="card">\
+        <div class="split">\
+          <div>\
+            <h3>進步折線圖（重量 / 月）</h3>\
+            <div class="row" style="gap:8px">\
+              <label style="width:80px">選擇動作</label>\
+              <select id="fit_chart_exercise"></select>\
+            </div>\
+            <div class="chart-wrap"><canvas id="fit_line"></canvas></div>\
+          </div>\
+          <div>\
+            <h3>月度摘要</h3>\
+            <div class="hint" style="margin-bottom:6px;">右表顯示每月「最高重量」與相對上月進步幅度（Δ）。</div>\
+            <table class="table" id="fit_table">\
+              <thead><tr><th>月份</th><th>重量</th><th>Δ</th></tr></thead>\
+              <tbody></tbody>\
+            </table>\
+          </div>\
+        </div>\
+        <div style="margin-top:10px">\
+          <h3>最近紀錄</h3>\
+          <div class="list" id="fit_list"></div>\
+        </div>\
+      </div>\
+    </div>\
+  `;
+}
+function renderFitness(){
+  const root = document.getElementById('view-fitness');
+  root.innerHTML = fitnessTemplate();
+  // defaults
+  const today = new Date();
+  document.getElementById('fit_date').value = toISODate(today);
+  document.getElementById('fit_rest').value = 0;
+  document.getElementById('fit_fill_now').addEventListener('click', ()=>{ document.getElementById('fit_date').value = toISODate(new Date()); });
+  document.getElementById('fit_add').addEventListener('click', ()=>{
+    const date = document.getElementById('fit_date').value;
+    const exercise = document.getElementById('fit_exercise').value.trim();
+    const start = document.getElementById('fit_start').value;
+    const end = document.getElementById('fit_end').value;
+    const rest = Number(document.getElementById('fit_rest').value || 0);
+    const weight = Number(document.getElementById('fit_weight').value || 0);
+    const note = document.getElementById('fit_note').value.trim();
+    if(!date || !exercise || !start || !end){ alert('請至少填：日期、動作、開始時間、結束時間'); return; }
+    const duration = Math.max(0, diffMinutes(start, end) - rest);
+    const item = { id: uid('w'), date, exercise, start, end, restMinutes: rest, durationMinutes: duration, weight, note, createdAt: new Date().toISOString() };
+    state.workouts.unshift(item);
+    saveStateLocal();
+    renderFitness();
+  });
+  // chart exercise dropdown
+  const exSet = new Set(state.workouts.map(w=> w.exercise));
+  const exList = Array.from(exSet).sort((a,b)=> a.localeCompare(b, 'zh-Hant'));
+  const sel = document.getElementById('fit_chart_exercise');
+  if(exList.length === 0){ sel.innerHTML = `<option value="">（尚無資料）</option>`; }
+  else{ sel.innerHTML = exList.map(x=> `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join(''); }
+  sel.addEventListener('change', ()=> drawFitnessChart(sel.value));
+  drawFitnessChart(exList[0] || '');
+  renderFitnessList();
+}
+function renderFitnessList(){
+  const list = document.getElementById('fit_list');
+  const items = state.workouts.slice(0, 12);
+  list.innerHTML = items.map(w=>{
+    const meta = [
+      `<span class="tag"><b>${escapeHtml(w.exercise)}</b></span>`,
+      `<span class="tag">${escapeHtml(w.date)}</span>`,
+      `<span class="tag">${escapeHtml(w.start)}–${escapeHtml(w.end)}</span>`,
+      `<span class="tag">休息 ${escapeHtml(String(w.restMinutes))} 分</span>`,
+      `<span class="tag">實際 ${fmtMinutes(w.durationMinutes)}</span>`,
+      `<span class="tag">重量 ${escapeHtml(String(w.weight))} kg</span>`
+    ].join(' ');
+    return `\
+      <div class="item">\
+        <div class="meta">${meta}</div>\
+        ${w.note ? `<div class="hint">${escapeHtml(w.note)}</div>` : `<div class="hint">（無備註）</div>`}\
+        <div class="btns" style="margin-top:6px"><button class="btn danger" onclick="deleteWorkout('${w.id}')">刪除</button></div>\
+      </div>\
+    `;
+  }).join('') || `<div class="hint">尚無健身紀錄。</div>`;
+}
+function deleteWorkout(id){ state.workouts = state.workouts.filter(w=> w.id!==id); saveStateLocal(); renderAll(); }
+function drawFitnessChart(exercise){
+  if(fitnessLineChart){ fitnessLineChart.destroy(); fitnessLineChart = null; }
+  const canvas = document.getElementById('fit_line');
+  if(!exercise){ canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height); document.querySelector('#fit_table tbody').innerHTML = ''; return; }
+  const filtered = state.workouts.filter(w=> w.exercise === exercise);
+  const byMonth = groupBy(filtered, w=> toMonthKey(w.date));
+  const months = Object.keys(byMonth).sort();
+  const weights = months.map(m=>{
+    const maxW = Math.max(...byMonth[m].map(x=> Number(x.weight || 0)));
+    return maxW;
+  });
+  // build table
+  const tbody = document.querySelector('#fit_table tbody');
+  let prev = null;
+  tbody.innerHTML = months.map((m,i)=>{
+    const w = weights[i];
+    const delta = (prev === null) ? '' : (w - prev);
+    const deltaTxt = (prev === null) ? '—' : (delta >= 0 ? `+${delta}` : `${delta}`);
+    prev = w;
+    return `<tr><td>${escapeHtml(m)}</td><td>${escapeHtml(String(w))} kg</td><td>${escapeHtml(deltaTxt)} kg</td></tr>`;
+  }).join('');
+  fitnessLineChart = new Chart(canvas, { type:'line', data:{ labels: months, datasets:[{ label:'月最高重量 (kg)', data: weights, tension:0.25, pointRadius:3, pointHoverRadius:4, fill:false }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true }, tooltip:{ callbacks:{ label:(ctx)=>` ${ctx.parsed.y} kg` } } }, scales:{ y:{ beginAtZero:true } } } });
+  canvas.parentElement.style.height = '240px';
+}
+
+/* =========================
+   Diary Section
+========================= */
+let diaryFilter = { month:'ALL', mood:'ALL' };
+function diaryTemplate(){
+  return `\
+    <div class="header">\
+      <div class="title">\
+        <h2>📓 日記</h2>\
+        <p>自動按「月份」與「心情」建立資料夾，方便回溯與查找。</p>\
+      </div>\
+      <span class="pill diary">Diary</span>\
+    </div>\
+    <div class="grid">\
+      <div class="card">\
+        <h3>新增日記</h3>\
+        <div class="form">\
+          <div class="row"><label>時間</label><input id="diary_time" type="datetime-local" /></div>\
+          <div class="row"><label>心情</label><select id="diary_mood">\
+            <option value="開心">開心</option><option value="平靜">平靜</option><option value="焦慮">焦慮</option><option value="低落">低落</option><option value="憤怒">憤怒</option><option value="疲倦">疲倦</option><option value="專注">專注</option><option value="其他">其他</option>\
+          </select></div>\
+          <div class="row"><label>內容</label><textarea id="diary_text" placeholder="寫點什麼…"></textarea></div>\
+          <div class="btns"><button class="btn primary" id="diary_add">新增</button></div>\
+        </div>\
+      </div>\
+      <div class="card">\
+        <div class="split">\
+          <div class="folder">\
+            <h4>資料夾（月份 / 心情）</h4>\
+            <div class="tree" id="diary_tree"></div>\
+            <div class="hint" style="margin-top:6px;">點選資料夾即可套用篩選。</div>\
+          </div>\
+          <div>\
+            <h3>清單</h3>\
+            <div class="kpi">\
+              <div class="box"><div class="t">目前篩選</div><div class="n" id="diary_kpi_filter">—</div></div>\
+              <div class="box"><div class="t">筆數</div><div class="n" id="diary_kpi_count">0</div></div>\
+              <div class="box"><div class="t">最早</div><div class="n" id="diary_kpi_min">—</div></div>\
+              <div class="box"><div class="t">最近</div><div class="n" id="diary_kpi_max">—</div></div>\
+            </div>\
+            <div class="btns" style="margin-top:8px"><button class="btn" id="diary_clear_filter">清除篩選</button></div>\
+            <div class="list" id="diary_list" style="margin-top:8px"></div>\
+          </div>\
+        </div>\
+      </div>\
+    </div>\
+  `;
+}
+function renderDiary(){
+  const root = document.getElementById('view-diary');
+  root.innerHTML = diaryTemplate();
+  const now = new Date();
+  const dt = `${toISODate(now)}T${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+  document.getElementById('diary_time').value = dt;
+  document.getElementById('diary_add').addEventListener('click', ()=>{
+    const time = document.getElementById('diary_time').value;
+    const mood = document.getElementById('diary_mood').value;
+    const text = document.getElementById('diary_text').value.trim();
+    if(!time || !text){ alert('請至少填：時間、內容'); return; }
+    state.diaries.unshift({ id: uid('d'), time: new Date(time).toISOString(), mood, text, createdAt: new Date().toISOString() });
+    saveStateLocal();
+    renderDiary();
+  });
+  document.getElementById('diary_clear_filter').addEventListener('click', ()=>{ diaryFilter = { month:'ALL', mood:'ALL' }; renderDiary(); });
+  renderDiaryTree();
+  renderDiaryList();
+}
+function renderDiaryTree(){
+  const tree = document.getElementById('diary_tree');
+  const diaries = state.diaries.slice().sort((a,b)=> new Date(b.time) - new Date(a.time));
+  const byMonth = groupBy(diaries, d=> toMonthKey(d.time));
+  const months = Object.keys(byMonth).sort().reverse();
+  const buttons = [];
+  buttons.push({ label:'全部', month:'ALL', mood:'ALL' });
+  for(const m of months){
+    buttons.push({ label:`📁 ${m}`, month:m, mood:'ALL' });
+    const byMood = groupBy(byMonth[m], d=> d.mood);
+    const moods = Object.keys(byMood).sort((a,b)=> a.localeCompare(b,'zh-Hant'));
+    for(const mood of moods){
+      buttons.push({ label:`└─ ${mood} (${byMood[mood].length})`, month:m, mood });
+    }
+  }
+  tree.innerHTML = buttons.map(b=>{
+    const active = (diaryFilter.month===b.month && diaryFilter.mood===b.mood) ? 'active' : '';
+    return `<button class="${active}" data-month="${escapeHtml(b.month)}" data-mood="${escapeHtml(b.mood)}">${escapeHtml(b.label)}</button>`;
+  }).join('') || `<div class="hint">尚無日記。</div>`;
+  tree.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-month]');
+    if(!btn) return;
+    diaryFilter.month = btn.dataset.month;
+    diaryFilter.mood = btn.dataset.mood;
+    renderDiary();
+  }, { once:true });
+}
+function renderDiaryList(){
+  const list = document.getElementById('diary_list');
+  let diaries = state.diaries.slice().sort((a,b)=> new Date(b.time) - new Date(a.time));
+  if(diaryFilter.month !== 'ALL'){ diaries = diaries.filter(d=> toMonthKey(d.time)===diaryFilter.month); }
+  if(diaryFilter.mood !== 'ALL'){ diaries = diaries.filter(d=> d.mood === diaryFilter.mood); }
+  document.getElementById('diary_kpi_filter').textContent = (diaryFilter.month==='ALL' && diaryFilter.mood==='ALL') ? '全部' : `${diaryFilter.month==='ALL' ? '全部月份' : diaryFilter.month} / ${diaryFilter.mood==='ALL' ? '全部心情' : diaryFilter.mood}`;
+  document.getElementById('diary_kpi_count').textContent = String(diaries.length);
+  if(diaries.length){
+    const times = diaries.map(d=> new Date(d.time).getTime()).sort((a,b)=> a - b);
+    document.getElementById('diary_kpi_min').textContent = new Date(times[0]).toISOString().slice(0,10);
+    document.getElementById('diary_kpi_max').textContent = new Date(times[times.length-1]).toISOString().slice(0,10);
+  } else {
+    document.getElementById('diary_kpi_min').textContent = '—';
+    document.getElementById('diary_kpi_max').textContent = '—';
+  }
+  list.innerHTML = diaries.slice(0, 30).map(d=>{
+    return `\
+      <div class="item">\
+        <div class="meta">\
+          <span class="tag"><b>${escapeHtml(d.mood)}</b></span>\
+          <span class="tag">${escapeHtml(fmtDateTime(d.time))}</span>\
+          <span class="tag">${escapeHtml(toMonthKey(d.time))}</span>\
+        </div>\
+        <div style="white-space:pre-wrap; line-height:1.4">${escapeHtml(d.text)}</div>\
+        <div class="btns" style="margin-top:6px"><button class="btn danger" onclick="deleteDiary('${d.id}')">刪除</button></div>\
+      </div>\
+    `;
+  }).join('') || `<div class="hint">此篩選下沒有日記。</div>`;
+}
+function deleteDiary(id){ state.diaries = state.diaries.filter(d=> d.id!==id); saveStateLocal(); renderAll(); }
+
+/* =========================
+   Learning Section
+========================= */
+let learnSubjectFilter = 'ALL';
+let markmapInstance = null;
+function learningTemplate(){
+  return `\
+    <div class="header">\
+      <div class="title">\
+        <h2>📚 學習紀錄</h2>\
+        <p>以「科目」自動建立資料夾；可一鍵生成心智圖（科目 → 條目）。</p>\
+      </div>\
+      <span class="pill learn">Learning</span>\
+    </div>\
+    <div class="grid">\
+      <div class="card">\
+        <h3>新增學習</h3>\
+        <div class="form">\
+          <div class="row"><label>日期</label><input id="learn_date" type="date" /></div>\
+          <div class="row"><label>科目</label><input id="learn_subject" placeholder="例：英文 / 投資 / 程式 / 咖啡" /></div>\
+          <div class="row"><label>標題</label><input id="learn_title" placeholder="例：ETF 再平衡原則" /></div>\
+          <div class="row"><label>內容</label><textarea id="learn_notes" placeholder="摘要、重點、連結…"></textarea></div>\
+          <div class="btns"><button class="btn primary" id="learn_add">新增</button></div>\
+        </div>\
+      </div>\
+      <div class="card">\
+        <div class="split">\
+          <div class="folder">\
+            <h4>科目資料夾</h4>\
+            <div class="tree" id="learn_tree"></div>\
+            <div class="btns" style="margin-top:8px">\
+              <button class="btn" id="learn_clear_filter">清除篩選</button>\
+              <button class="btn primary" id="learn_render_mindmap">生成心智圖</button>\
+            </div>\
+            <div class="hint" style="margin-top:6px;">心智圖以「科目 → 標題」組織，適合做回顧索引。</div>\
+          </div>\
+          <div>\
+            <h3>清單</h3>\
+            <div class="list" id="learn_list"></div>\
+            <h3 style="margin-top:10px;">心智圖</h3>\
+            <div class="chart-wrap" style="height:280px; overflow:hidden;">\
+              <svg id="mindmap" style="width:100%;height:100%;"></svg>\
+            </div>\
+          </div>\
+        </div>\
+      </div>\
+    </div>\
+  `;
+}
+function renderLearning(){
+  const root = document.getElementById('view-learning');
+  root.innerHTML = learningTemplate();
+  document.getElementById('learn_date').value = toISODate(new Date());
+  document.getElementById('learn_add').addEventListener('click', ()=>{
+    const date = document.getElementById('learn_date').value;
+    const subject = document.getElementById('learn_subject').value.trim();
+    const title = document.getElementById('learn_title').value.trim();
+    const notes = document.getElementById('learn_notes').value.trim();
+    if(!date || !subject || !title){ alert('請至少填：日期、科目、標題'); return; }
+    state.learnings.unshift({ id: uid('l'), date, subject, title, notes, createdAt: new Date().toISOString() });
+    saveStateLocal();
+    renderLearning();
+  });
+  document.getElementById('learn_clear_filter').addEventListener('click', ()=>{ learnSubjectFilter = 'ALL'; renderLearning(); });
+  document.getElementById('learn_render_mindmap').addEventListener('click', ()=>{ renderMindMap(); });
+  renderLearningTree();
+  renderLearningList();
+  renderMindMap();
+}
+function renderLearningTree(){
+  const tree = document.getElementById('learn_tree');
+  const subjects = Array.from(new Set(state.learnings.map(x=> x.subject))).sort((a,b)=> a.localeCompare(b,'zh-Hant'));
+  const items = [{ label:`全部 (${state.learnings.length})`, subject:'ALL' }].concat(subjects.map(s=>{ const n = state.learnings.filter(x=> x.subject===s).length; return { label:`📁 ${s} (${n})`, subject:s }; }));
+  tree.innerHTML = items.map(it=>{
+    const active = (learnSubjectFilter===it.subject) ? 'active' : '';
+    return `<button class="${active}" data-subject="${escapeHtml(it.subject)}">${escapeHtml(it.label)}</button>`;
+  }).join('') || `<div class="hint">尚無學習紀錄。</div>`;
+  tree.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-subject]');
+    if(!btn) return;
+    learnSubjectFilter = btn.dataset.subject;
+    renderLearning();
+  }, { once:true });
+}
+function renderLearningList(){
+  const list = document.getElementById('learn_list');
+  let arr = state.learnings.slice().sort((a,b)=> new Date(b.date) - new Date(a.date));
+  if(learnSubjectFilter !== 'ALL'){ arr = arr.filter(x=> x.subject === learnSubjectFilter); }
+  list.innerHTML = arr.slice(0,30).map(x=>{
+    return `\
+      <div class="item">\
+        <div class="meta">\
+          <span class="tag"><b>${escapeHtml(x.subject)}</b></span>\
+          <span class="tag">${escapeHtml(x.date)}</span>\
+        </div>\
+        <div style="font-weight:700; margin-bottom:4px">${escapeHtml(x.title)}</div>\
+        <div class="hint" style="white-space:pre-wrap">${x.notes ? escapeHtml(x.notes) : '（無內容）'}</div>\
+        <div class="btns" style="margin-top:6px"><button class="btn danger" onclick="deleteLearning('${x.id}')">刪除</button></div>\
+      </div>\
+    `;
+  }).join('') || `<div class="hint">此篩選下沒有學習紀錄。</div>`;
+}
+function deleteLearning(id){ state.learnings = state.learnings.filter(x=> x.id !== id); saveStateLocal(); renderAll(); }
+function renderMindMap(){
+  const svg = document.getElementById('mindmap');
+  if(!svg) return;
+  const bySubject = groupBy(state.learnings, x=> x.subject);
+  const subjects = Object.keys(bySubject).sort((a,b)=> a.localeCompare(b,'zh-Hant'));
+  let md = '# 學習總覽\n';
+  for(const s of subjects){ md += `## ${s}\n`; const items = bySubject[s].slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).slice(0,20); for(const it of items){ md += `- ${it.title} (${it.date})\n`; } }
+  svg.innerHTML = '';
+  const { Transformer } = window.markmap;
+  const transformer = new Transformer();
+  const { root } = transformer.transform(md);
+  markmapInstance = window.markmap.Markmap.create(svg,{ autoFit:true, duration:0, maxWidth:240 }, root);
+}
+
+/* =========================
+   Finance Section
+========================= */
+let incomePie = null;
+let expensePie = null;
+function financeTemplate(){
+  return `\
+    <div class="header">\
+      <div class="title">\
+        <h2>💰 收支紀錄</h2>\
+        <p>收入/支出分開呈現圓餅圖；支援訂閱自動扣款（每月指定日）。</p>\
+      </div>\
+      <span class="pill money">Finance</span>\
+    </div>\
+    <div class="grid">\
+      <div class="card">\
+        <h3>新增交易</h3>\
+        <div class="form">\
+          <div class="row"><label>日期</label><input id="fin_date" type="date" /></div>\
+          <div class="row"><label>類型</label><select id="fin_type"><option value="expense">支出</option><option value="income">收入</option></select></div>\
+          <div class="row"><label>分類</label><input id="fin_category" placeholder="例：餐飲 / 交通 / 房租 / 薪資" /></div>\
+          <div class="row"><label>金額</label><input id="fin_amount" type="number" min="0" step="1" /></div>\
+          <div class="row"><label>備註</label><input id="fin_note" placeholder="可選" /></div>\
+          <div class="btns"><button class="btn primary" id="fin_add">新增</button></div>\
+        </div>\
+        <h3 style="margin-top:12px;">訂閱扣款（每月）</h3>\
+        <div class="form">\
+          <div class="row"><label>名稱</label><input id="sub_name" placeholder="例：Netflix / iCloud / 健身房" /></div>\
+          <div class="row"><label>分類</label><input id="sub_category" placeholder="例：訂閱 / 工具 / 健身" /></div>\
+          <div class="row"><label>扣款日</label><input id="sub_day" type="number" min="1" max="28" step="1" placeholder="建議 1-28" /></div>\
+          <div class="row"><label>金額</label><input id="sub_amount" type="number" min="0" step="1" /></div>\
+          <div class="btns">\
+            <button class="btn primary" id="sub_add">新增訂閱</button>\
+            <button class="btn" id="sub_run">生成本月訂閱扣款</button>\
+          </div>\
+          <div class="hint">系統會在你開啟網站時自動檢查：若「今天已到扣款日」且本月尚未生成，將自動新增一筆支出。</div>\
+        </div>\
+      </div>\
+      <div class="card">\
+        <div class="split">\
+          <div>\
+            <h3>圓餅圖：支出分類</h3>\
+            <div class="chart-wrap" style="height:240px;"><canvas id="expense_pie"></canvas></div>\
+          </div>\
+          <div>\
+            <h3>圓餅圖：收入分類</h3>\
+            <div class="chart-wrap" style="height:240px;"><canvas id="income_pie"></canvas></div>\
+          </div>\
+        </div>\
+        <div style="margin-top:10px"><h3>最近交易</h3><div class="list" id="fin_list"></div></div>\
+        <div style="margin-top:10px"><h3>訂閱清單</h3><div class="list" id="sub_list"></div></div>\
+      </div>\
+    </div>\
+  `;
+}
+function renderFinance(){
+  const root = document.getElementById('view-finance');
+  root.innerHTML = financeTemplate();
+  document.getElementById('fin_date').value = toISODate(new Date());
+  document.getElementById('fin_add').addEventListener('click', ()=>{
+    const date = document.getElementById('fin_date').value;
+    const type = document.getElementById('fin_type').value;
+    const category = document.getElementById('fin_category').value.trim();
+    const amount = Number(document.getElementById('fin_amount').value || 0);
+    const note = document.getElementById('fin_note').value.trim();
+    if(!date || !category || amount<=0){ alert('請至少填：日期、分類、金額(>0)'); return; }
+    state.transactions.unshift({ id: uid('t'), date, type, category, amount, note, createdAt: new Date().toISOString() });
+    saveStateLocal();
+    renderFinance();
+  });
+  document.getElementById('sub_add').addEventListener('click', ()=>{
+    const name = document.getElementById('sub_name').value.trim();
+    const category = document.getElementById('sub_category').value.trim();
+    const day = Number(document.getElementById('sub_day').value || 0);
+    const amount = Number(document.getElementById('sub_amount').value || 0);
+    if(!name || !category || day<1 || day>28 || amount<=0){ alert('訂閱需填：名稱、分類、扣款日(1-28)、金額(>0)'); return; }
+    state.subscriptions.unshift({ id: uid('s'), name, category, dayOfMonth: day, amount, lastGeneratedMonth: null });
+    saveStateLocal();
+    renderFinance();
+  });
+  document.getElementById('sub_run').addEventListener('click', ()=>{ runSubscriptionAutopost(true); renderFinance(); });
+  // auto run subscription generation
+  runSubscriptionAutopost(false);
+  renderFinanceCharts();
+  renderFinanceList();
+  renderSubscriptionList();
+}
+function runSubscriptionAutopost(manual){
+  const now = new Date();
+  const month = `${now.getFullYear()}-${pad2(now.getMonth()+1)}`;
+  const day = now.getDate();
+  let generated = 0;
+  for(const s of state.subscriptions){
+    const shouldGenerate = (day >= s.dayOfMonth) && (s.lastGeneratedMonth !== month);
+    if(shouldGenerate){
+      state.transactions.unshift({ id: uid('t'), date: toISODate(now), type:'expense', category: s.category, amount: s.amount, note: `訂閱：${s.name}（${month}）`, createdAt: new Date().toISOString() });
+      s.lastGeneratedMonth = month;
+      generated++;
+    }
+  }
+  if(generated>0){ saveStateLocal(); if(manual) alert(`已生成 ${generated} 筆本月訂閱扣款。`); }
+  else{ if(manual) alert('本月訂閱扣款無需生成（可能尚未到扣款日，或已生成）。'); }
+}
+function renderFinanceCharts(){
+  if(incomePie){ incomePie.destroy(); incomePie = null; }
+  if(expensePie){ expensePie.destroy(); expensePie = null; }
+  const expenses = state.transactions.filter(t=> t.type==='expense');
+  const income = state.transactions.filter(t=> t.type==='income');
+  const expenseByCat = groupBy(expenses, t=> t.category);
+  const incomeByCat = groupBy(income, t=> t.category);
+  const expLabels = Object.keys(expenseByCat).sort((a,b)=> a.localeCompare(b,'zh-Hant'));
+  const incLabels = Object.keys(incomeByCat).sort((a,b)=> a.localeCompare(b,'zh-Hant'));
+  const expData = expLabels.map(k=> sum(expenseByCat[k].map(x=> x.amount)));
+  const incData = incLabels.map(k=> sum(incomeByCat[k].map(x=> x.amount)));
+  const expCanvas = document.getElementById('expense_pie');
+  const incCanvas = document.getElementById('income_pie');
+  expensePie = new Chart(expCanvas, { type:'pie', data:{ labels: expLabels.length ? expLabels : ['（尚無支出）'], datasets:[{ data: expLabels.length ? expData : [1] }] }, options:{ plugins:{ tooltip:{ callbacks:{ label:(ctx)=>{ if(!expLabels.length) return '尚無資料'; const v = ctx.parsed; return ` ${ctx.label}: ${v}`; } } } } } });
+  incomePie = new Chart(incCanvas, { type:'pie', data:{ labels: incLabels.length ? incLabels : ['（尚無收入）'], datasets:[{ data: incLabels.length ? incData : [1] }] }, options:{ plugins:{ tooltip:{ callbacks:{ label:(ctx)=>{ if(!incLabels.length) return '尚無資料'; const v = ctx.parsed; return ` ${ctx.label}: ${v}`; } } } } } });
+}
+function renderFinanceList(){
+  const list = document.getElementById('fin_list');
+  const items = state.transactions.slice().sort((a,b)=> new Date(b.date) - new Date(a.date)).slice(0, 16);
+  list.innerHTML = items.map(t=>{
+    const sign = (t.type==='expense') ? '-' : '+';
+    const tag = (t.type==='expense') ? '支出' : '收入';
+    return `\
+      <div class="item">\
+        <div class="meta">\
+          <span class="tag"><b>${escapeHtml(tag)}</b></span>\
+          <span class="tag">${escapeHtml(t.date)}</span>\
+          <span class="tag">${escapeHtml(t.category)}</span>\
+          <span class="tag">${sign}${escapeHtml(String(t.amount))}</span>\
+        </div>\
+        <div class="hint">${t.note ? escapeHtml(t.note) : '（無備註）'}</div>\
+        <div class="btns" style="margin-top:6px"><button class="btn danger" onclick="deleteTransaction('${t.id}')">刪除</button></div>\
+      </div>\
+    `;
+  }).join('') || `<div class="hint">尚無交易紀錄。</div>`;
+}
+function deleteTransaction(id){ state.transactions = state.transactions.filter(t=> t.id!==id); saveStateLocal(); renderAll(); }
+function renderSubscriptionList(){
+  const list = document.getElementById('sub_list');
+  const subs = state.subscriptions.slice();
+  list.innerHTML = subs.map(s=>{
+    return `\
+      <div class="item">\
+        <div class="meta">\
+          <span class="tag"><b>${escapeHtml(s.name)}</b></span>\
+          <span class="tag">${escapeHtml(s.category)}</span>\
+          <span class="tag">每月 ${escapeHtml(String(s.dayOfMonth))} 日</span>\
+          <span class="tag">${escapeHtml(String(s.amount))}</span>\
+        </div>\
+        <div class="hint">本月生成狀態：${s.lastGeneratedMonth ? escapeHtml(s.lastGeneratedMonth) : '尚未生成'}</div>\
+        <div class="btns" style="margin-top:6px"><button class="btn danger" onclick="deleteSubscription('${s.id}')">刪除</button></div>\
+      </div>\
+    `;
+  }).join('') || `<div class="hint">尚無訂閱。</div>`;
+}
+function deleteSubscription(id){ state.subscriptions = state.subscriptions.filter(s=> s.id!==id); saveStateLocal(); renderAll(); }
+
+/* =========================
+   Render All
+========================= */
+function renderAll(){
+  const active = document.querySelector('.nav button.active')?.dataset.view || 'fitness';
+  if(active === 'fitness') renderFitness();
+  if(active === 'diary') renderDiary();
+  if(active === 'learning') renderLearning();
+  if(active === 'finance') renderFinance();
+}
+
+// Boot: load state and perform initial render
+state = loadStateLocal();
+renderAll();
+</script>
+</body>
+</html>
