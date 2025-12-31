@@ -238,10 +238,14 @@
     }
     .card{
       border:1px solid var(--border);
-      background: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.82);
       border-radius:16px;
       box-shadow: var(--shadow2);
-      padding:12px;
+      padding:14px;
+      transition: box-shadow 0.2s ease;
+    }
+    .card:hover{
+      box-shadow: 0 6px 16px rgba(30,20,10,.10);
     }
     .form{
       display:flex;
@@ -262,11 +266,31 @@
       flex:1;
       border:1px solid var(--border);
       border-radius:10px;
-      padding:8px 8px;
-      background: rgba(255,255,255,.85);
+      padding:8px 10px;
+      background: rgba(255,255,255,.90);
       color:var(--text);
       outline:none;
       font-size:13px;
+      font-family: inherit;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(210,121,74,.45);
+      background: rgba(255,255,255,.98);
+    }
+    select{
+      cursor: pointer;
+      padding-right: 24px;
+    }
+    select optgroup{
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+      padding: 4px 0;
+    }
+    select option{
+      padding: 6px 8px;
+      font-size: 13px;
     }
     textarea{min-height:80px; resize:vertical; line-height:1.4}
     .btns{
@@ -278,31 +302,54 @@
       flex:1;
       border:1px solid var(--border);
       border-radius:10px;
-      padding:8px 10px;
+      padding:10px 12px;
       cursor:pointer;
       background: rgba(255,255,255,.75);
-      font-size:12px;
+      font-size:13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      color: var(--text);
     }
     .btn.primary{
-      background: rgba(210,121,74,.18);
-      border-color: rgba(210,121,74,.35);
+      background: rgba(210,121,74,.20);
+      border-color: rgba(210,121,74,.40);
+      color: var(--text);
     }
     .btn.danger{
-      background: rgba(200,76,76,.14);
-      border-color: rgba(200,76,76,.30);
+      background: rgba(200,76,76,.16);
+      border-color: rgba(200,76,76,.35);
       color:#7a1f1f;
     }
-    .btn:hover{background: rgba(255,255,255,.88)}
-    .btn.primary:hover{background: rgba(210,121,74,.22)}
-    .btn.danger:hover{background: rgba(200,76,76,.18)}
+    .btn:hover{
+      background: rgba(255,255,255,.95);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(30,20,10,.08);
+    }
+    .btn.primary:hover{
+      background: rgba(210,121,74,.28);
+      border-color: rgba(210,121,74,.50);
+    }
+    .btn.danger:hover{
+      background: rgba(200,76,76,.22);
+      border-color: rgba(200,76,76,.45);
+    }
+    .btn:active{
+      transform: translateY(0);
+    }
 
-    .list{display:flex;flex-direction:column;gap:8px;}
+    .list{display:flex;flex-direction:column;gap:10px;}
     .item{
       border:1px solid var(--border);
-      background: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.82);
       border-radius:14px;
-      padding:10px;
+      padding:12px;
       box-shadow: var(--shadow2);
+      transition: all 0.2s ease;
+    }
+    .item:hover{
+      box-shadow: 0 4px 14px rgba(30,20,10,.12);
+      transform: translateX(2px);
     }
     .meta{
       display:flex;
@@ -548,19 +595,25 @@
       width:100%;
       border-collapse:separate;
       border-spacing:0 4px;
-      font-size:11px;
+      font-size:12px;
     }
     .table th{
       text-align:left;
       color:var(--muted);
       font-weight:600;
-      padding:0 4px;
+      padding:4px 8px;
+      font-size:11px;
+      letter-spacing: 0.3px;
     }
     .table td{
-      padding:6px 4px;
+      padding:8px 10px;
       border:1px solid var(--border);
-      background: rgba(255,255,255,.68);
+      background: rgba(255,255,255,.75);
       border-radius:8px;
+      transition: background 0.2s;
+    }
+    .table tr:hover td{
+      background: rgba(255,255,255,.88);
     }
     .right{text-align:right;}
   </style>
@@ -1353,7 +1406,67 @@ function fitnessTemplate(){
         <h3>新增訓練</h3>\
         <div class="form">\
           <div class="row"><label>日期</label><input id="fit_date" type="date" /></div>\
-          <div class="row"><label>動作/項目</label><input id="fit_exercise" placeholder="例：深蹲 / 卧推 / 硬舉" /></div>\
+          <div class="row"><label>動作/項目</label><select id="fit_exercise">\
+            <optgroup label="胸部">\
+              <option value="啞鈴臥推">啞鈴臥推</option>\
+              <option value="上斜啞鈴臥推">上斜啞鈴臥推</option>\
+              <option value="下斜啞鈴臥推">下斜啞鈴臥推</option>\
+              <option value="啞鈴飛鳥">啞鈴飛鳥</option>\
+              <option value="上斜啞鈴飛鳥">上斜啞鈴飛鳥</option>\
+            </optgroup>\
+            <optgroup label="背部">\
+              <option value="啞鈴單臂划船">啞鈴單臂划船</option>\
+              <option value="啞鈴雙臂划船">啞鈴雙臂划船</option>\
+              <option value="啞鈴硬舉">啞鈴硬舉</option>\
+              <option value="啞鈴羅馬尼亞硬舉">啞鈴羅馬尼亞硬舉</option>\
+              <option value="啞鈴聳肩">啞鈴聳肩</option>\
+              <option value="啞鈴反向飛鳥">啞鈴反向飛鳥</option>\
+            </optgroup>\
+            <optgroup label="腿部">\
+              <option value="啞鈴深蹲">啞鈴深蹲</option>\
+              <option value="啞鈴高腳杯深蹲">啞鈴高腳杯深蹲</option>\
+              <option value="啞鈴弓箭步">啞鈴弓箭步</option>\
+              <option value="啞鈴保加利亞分腿蹲">啞鈴保加利亞分腿蹲</option>\
+              <option value="啞鈴側弓步">啞鈴側弓步</option>\
+              <option value="啞鈴提踵">啞鈴提踵</option>\
+              <option value="啞鈴單腿硬舉">啞鈴單腿硬舉</option>\
+            </optgroup>\
+            <optgroup label="肩膀">\
+              <option value="啞鈴肩推">啞鈴肩推</option>\
+              <option value="啞鈴阿諾推舉">啞鈴阿諾推舉</option>\
+              <option value="啞鈴側平舉">啞鈴側平舉</option>\
+              <option value="啞鈴前平舉">啞鈴前平舉</option>\
+              <option value="啞鈴俯身側平舉">啞鈴俯身側平舉</option>\
+              <option value="啞鈴直立划船">啞鈴直立划船</option>\
+            </optgroup>\
+            <optgroup label="手臂 - 二頭肌">\
+              <option value="啞鈴彎舉">啞鈴彎舉</option>\
+              <option value="啞鈴錘式彎舉">啞鈴錘式彎舉</option>\
+              <option value="啞鈴交替彎舉">啞鈴交替彎舉</option>\
+              <option value="啞鈴集中彎舉">啞鈴集中彎舉</option>\
+              <option value="啞鈴斜板彎舉">啞鈴斜板彎舉</option>\
+            </optgroup>\
+            <optgroup label="手臂 - 三頭肌">\
+              <option value="啞鈴過頭臂屈伸">啞鈴過頭臂屈伸</option>\
+              <option value="啞鈴俯身臂屈伸">啞鈴俯身臂屈伸</option>\
+              <option value="啞鈴仰臥臂屈伸">啞鈴仰臥臂屈伸</option>\
+            </optgroup>\
+            <optgroup label="核心">\
+              <option value="啞鈴俄羅斯轉體">啞鈴俄羅斯轉體</option>\
+              <option value="啞鈴側彎">啞鈴側彎</option>\
+              <option value="啞鈴農夫走路">啞鈴農夫走路</option>\
+              <option value="啞鈴伐木">啞鈴伐木</option>\
+            </optgroup>\
+            <optgroup label="複合動作">\
+              <option value="啞鈴抓舉">啞鈴抓舉</option>\
+              <option value="啞鈴挺舉">啞鈴挺舉</option>\
+              <option value="啞鈴土耳其起立">啞鈴土耳其起立</option>\
+              <option value="啞鈴波比跳">啞鈴波比跳</option>\
+            </optgroup>\
+            <optgroup label="其他">\
+              <option value="自訂動作">自訂動作</option>\
+            </optgroup>\
+          </select></div>\
           <div class="row"><label>開始時間</label><input id="fit_start" type="time" /></div>\
           <div class="row"><label>結束時間</label><input id="fit_end" type="time" /></div>\
           <div class="row"><label>休息時間</label><input id="fit_rest" type="number" min="0" step="1" placeholder="分鐘" /></div>\
