@@ -2009,7 +2009,7 @@ function fitnessTemplate(){
     </div>\
   `;
 }
-function renderFitness(){
+async function renderFitness(){
   const root = document.getElementById('view-fitness');
   root.innerHTML = fitnessTemplate();
   // defaults
@@ -2042,7 +2042,7 @@ function renderFitness(){
   drawFitnessChart(exList[0] || '');
   renderFitnessList();
   // After rendering lists, show recommendations section
-  renderRecommendations('fitness');
+  await renderRecommendations('fitness');
 }
 function renderFitnessList(){
   const list = document.getElementById('fit_list');
@@ -2139,7 +2139,7 @@ function diaryTemplate(){
     </div>\
   `;
 }
-function renderDiary(){
+async function renderDiary(){
   const root = document.getElementById('view-diary');
   root.innerHTML = diaryTemplate();
   const now = new Date();
@@ -2158,7 +2158,7 @@ function renderDiary(){
   renderDiaryTree();
   renderDiaryList();
   // Show recommendations section for diary
-  renderRecommendations('diary');
+  await renderRecommendations('diary');
 }
 function renderDiaryTree(){
   const tree = document.getElementById('diary_tree');
@@ -2299,7 +2299,7 @@ function learningTemplate(){
   </div>
 </div>`;
 }
-function renderLearning(){
+async function renderLearning(){
   const root = document.getElementById('view-learning');
   root.innerHTML = learningTemplate();
 
@@ -2342,7 +2342,7 @@ function renderLearning(){
   renderLearningList();
   renderMindMap();
   // Show recommendations section for learning
-  renderRecommendations('learning');
+  await renderRecommendations('learning');
 
   // Handle image upload and OCR for generating a learning note
   const photoInput = document.getElementById('learn_photo');
@@ -2503,7 +2503,7 @@ function financeTemplate(){
     </div>\
   `;
 }
-function renderFinance(){
+async function renderFinance(){
   const root = document.getElementById('view-finance');
   root.innerHTML = financeTemplate();
   document.getElementById('fin_date').value = toISODate(new Date());
@@ -2535,7 +2535,7 @@ function renderFinance(){
   renderFinanceList();
   renderSubscriptionList();
   // Show recommendations section for finance
-  renderRecommendations('finance');
+  await renderRecommendations('finance');
 }
 function runSubscriptionAutopost(manual){
   const now = new Date();
@@ -2682,12 +2682,12 @@ function deleteSubscription(id){ state.subscriptions = state.subscriptions.filte
 /* =========================
    Render All
 ========================= */
-function renderAll(){
+async function renderAll(){
   const active = currentView;
-  if(active === 'fitness') renderFitness();
-  else if(active === 'diary') renderDiary();
-  else if(active === 'learning') renderLearning();
-  else if(active === 'finance') renderFinance();
+  if(active === 'fitness') await renderFitness();
+  else if(active === 'diary') await renderDiary();
+  else if(active === 'learning') await renderLearning();
+  else if(active === 'finance') await renderFinance();
   else if(active === 'overview') renderOverview();
   // After rendering, apply collapsible card functionality for sections
   // other than learning. The learning section uses its own
