@@ -124,215 +124,221 @@
       z-index: 9999;
       opacity: 0.3;
     }
-    /* Layout container: sidebar replaced by top nav for mobile. */
+    /* Particle Canvas Background */
+    #particleCanvas{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Layout container */
     .app{
       display:flex;
       flex-direction:column;
       min-height:100vh;
-    }
-    /* Top navigation bar */
-    .topnav{
-      display:flex;
-      flex-direction:column;
-      padding:14px 18px;
-      background: rgba(10,14,39,.92);
-      border-bottom:2px solid var(--neon-cyan);
-      border-top: 1px solid rgba(0,212,255,.2);
-      position:sticky;
-      top:0;
-      z-index:10;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 0 20px rgba(0,212,255,.3),
-                  0 4px 30px rgba(0,0,0,.5);
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .brand h1{
-      font-size:18px;
-      margin:0;
-      color: var(--neon-cyan);
-      text-shadow: 0 0 10px var(--neon-cyan),
-                   0 0 20px var(--neon-cyan),
-                   0 0 30px var(--neon-cyan);
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-    .brand p{
-      margin:2px 0 0;
-      font-size:11px;
-      color:var(--muted);
-      line-height:1.4;
-      letter-spacing: 1px;
-    }
-    .nav{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
-    }
-    .nav button{
-      flex:1 1 calc(50% - 8px);
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border-radius:4px;
-      border:1px solid rgba(0,212,255,.4);
-      background: rgba(20,25,45,.60);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      cursor:pointer;
-      text-align:left;
-      transition: all .2s ease;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: 0.5px;
       position: relative;
     }
-    .nav button:hover{
-      transform: translateY(-1px);
-      background: rgba(20,25,45,.80);
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 15px rgba(0,212,255,.4),
-                  inset 0 0 10px rgba(0,212,255,.1);
-    }
-    .nav button.active{
-      background: rgba(30,35,55,.90);
-      border: 2px solid var(--neon-cyan);
-      box-shadow: 0 0 20px rgba(0,212,255,.6),
-                  0 0 40px rgba(0,212,255,.3),
-                  inset 0 0 15px rgba(0,212,255,.2);
-      color: var(--text-bright);
-    }
-    .nav button.active::before{
-      content: '';
-      position: absolute;
-      left: -2px;
-      top: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: var(--learn-gradient);
-      border-radius: 4px;
-      z-index: -1;
-      opacity: 0.3;
-      filter: blur(8px);
-    }
-    .dot{width:8px;height:8px;border-radius:99px;}
-    .dot.fit{background:var(--fit)}
-    .dot.diary{background:var(--diary)}
-    .dot.learn{background:var(--learn)}
-    .dot.money{background:var(--money)}
-    .dot.overview{background:var(--overview)}
-    .small{font-size:11px;color:var(--muted)}
-    .top-actions{
-      display:flex;
-      gap:6px;
-      margin-top:10px;
-      flex-wrap:wrap;
-    }
-    .top-actions button, .top-actions label{
-      flex:1 1 calc(50% - 6px);
-      border:1.5px solid rgba(255,255,255,.40);
-      background: rgba(255,255,255,.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-radius:12px;
-      padding:9px 12px;
-      cursor:pointer;
-      font-size:12px;
-      font-weight: 600;
-      text-align:center;
-      transition: all 0.25s ease;
-      box-shadow: 0 2px 8px rgba(80,40,120,.08),
-                  inset 0 1px 0 rgba(255,255,255,.4);
-    }
-    .top-actions button:hover, .top-actions label:hover{
-      background: rgba(255,255,255,.50);
-      border-color: rgba(255,255,255,.55);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(80,40,120,.12),
-                  inset 0 1px 0 rgba(255,255,255,.5);
-    }
-    .top-actions input{display:none}
 
-    /* Collapsible navigation bar styles */
-    .topnav-header{
+    /* Tab Navigation Bar */
+    .tab-nav{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:8px;
+      padding:0;
+      background: rgba(10,14,39,.95);
+      border-bottom:3px solid transparent;
+      border-image: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink), var(--neon-green)) 1;
+      position:sticky;
+      top:0;
+      z-index:100;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: 0 0 30px rgba(0,212,255,.4),
+                  0 4px 40px rgba(0,0,0,.6);
+      overflow-x: auto;
+      overflow-y: hidden;
     }
-    .nav-toggle{
-      background: rgba(255,255,255,.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border:1.5px solid rgba(255,255,255,.40);
-      border-radius:12px;
-      padding:8px 12px;
-      font-size:18px;
-      line-height:1;
+
+    .tab-container{
+      display:flex;
+      flex:1;
+      min-width:0;
+    }
+
+    .tab-btn{
+      flex:1;
+      min-width:80px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      padding:16px 12px;
+      background:transparent;
+      border:none;
       cursor:pointer;
+      position:relative;
+      transition: all 0.3s ease;
+      color:var(--muted);
+    }
+
+    .tab-icon{
+      font-size:24px;
+      transition: all 0.3s ease;
+      filter: grayscale(100%);
+    }
+
+    .tab-label{
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      transition: all 0.3s ease;
+    }
+
+    .tab-indicator{
+      position:absolute;
+      bottom:0;
+      left:0;
+      right:0;
+      height:3px;
+      background:transparent;
+      transition: all 0.3s ease;
+    }
+
+    /* Active Tab Styles */
+    .tab-btn.active{
+      color:var(--text-bright);
+    }
+
+    .tab-btn.active .tab-icon{
+      filter: grayscale(0%) drop-shadow(0 0 8px currentColor);
+      transform: scale(1.1);
+    }
+
+    .tab-btn.active[data-view="fitness"]{color:var(--fit);}
+    .tab-btn.active[data-view="fitness"] .tab-indicator{
+      background:var(--fit);
+      box-shadow:var(--fit-glow);
+    }
+
+    .tab-btn.active[data-view="diary"]{color:var(--diary);}
+    .tab-btn.active[data-view="diary"] .tab-indicator{
+      background:var(--diary);
+      box-shadow:var(--diary-glow);
+    }
+
+    .tab-btn.active[data-view="learning"]{color:var(--learn);}
+    .tab-btn.active[data-view="learning"] .tab-indicator{
+      background:var(--learn);
+      box-shadow:var(--learn-glow);
+    }
+
+    .tab-btn.active[data-view="finance"]{color:var(--money);}
+    .tab-btn.active[data-view="finance"] .tab-indicator{
+      background:var(--money);
+      box-shadow:var(--money-glow);
+    }
+
+    .tab-btn.active[data-view="overview"]{color:var(--overview);}
+    .tab-btn.active[data-view="overview"] .tab-indicator{
+      background:var(--overview);
+      box-shadow:var(--overview-glow);
+    }
+
+    /* Hover Effects */
+    .tab-btn:hover:not(.active){
+      background:rgba(255,255,255,.05);
       color:var(--text);
+    }
+
+    .tab-btn:hover:not(.active) .tab-icon{
+      filter: grayscale(50%);
+      transform: translateY(-2px);
+    }
+
+    /* Quick Actions */
+    .quick-actions{
+      display:flex;
+      gap:4px;
+      padding:8px 12px;
+    }
+
+    .quick-btn{
+      width:40px;
+      height:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(20,25,45,.60);
+      border:1px solid rgba(0,212,255,.3);
+      border-radius:6px;
+      cursor:pointer;
+      font-size:18px;
       transition: all 0.25s ease;
-      box-shadow: 0 2px 8px rgba(80,40,120,.08),
-                  inset 0 1px 0 rgba(255,255,255,.4);
-    }
-    .nav-toggle:hover{
-      background:rgba(255,255,255,.50);
-      border-color: rgba(255,255,255,.55);
-      box-shadow: 0 4px 12px rgba(80,40,120,.12),
-                  inset 0 1px 0 rgba(255,255,255,.5);
+      color:var(--text);
     }
 
-  /* Container for home and nav toggle buttons */
-  .header-controls{
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
+    .quick-btn:hover{
+      background:rgba(30,35,55,.80);
+      border-color:var(--neon-cyan);
+      box-shadow:0 0 15px rgba(0,212,255,.5);
+      transform:translateY(-2px);
+    }
 
-  /* Home button styles (same baseline as nav-toggle) */
-  .home-toggle{
-    background: rgba(255,255,255,.35);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border:1.5px solid rgba(255,255,255,.40);
-    border-radius:12px;
-    padding:8px 12px;
-    font-size:18px;
-    line-height:1;
-    cursor:pointer;
-    color:var(--text);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 8px rgba(80,40,120,.08),
-                  inset 0 1px 0 rgba(255,255,255,.4);
-  }
-  .home-toggle:hover{
-    background:rgba(255,255,255,.50);
-    border-color: rgba(255,255,255,.55);
-    box-shadow: 0 4px 12px rgba(80,40,120,.12),
-                  inset 0 1px 0 rgba(255,255,255,.5);
-  }
-    /* When navigation is collapsed, hide nav-content */
-    .topnav.collapsed .nav-content{
-      display:none;
+    .quick-btn.danger:hover{
+      border-color:var(--danger);
+      box-shadow:0 0 15px rgba(255,0,64,.5);
     }
 
     .main{
       flex:1;
       padding:16px;
       width:100%;
-      max-width:900px;
+      max-width:1400px;
       margin:0 auto;
     }
+
+    /* Split View Layout: Form | Stats */
+    .split-view{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    @media (min-width: 768px){
+      .split-view{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    .split-left, .split-right{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    /* View Transition Animation */
+    .view{
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn{
+      from{
+        opacity:0;
+        transform: translateX(20px);
+      }
+      to{
+        opacity:1;
+        transform: translateX(0);
+      }
+    }
+
     .header{
       display:flex;
       justify-content:space-between;
@@ -820,66 +826,6 @@
       user-select:none;
     }
 
-    /* Home page layout */
-    .home-page{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      text-align:center;
-      padding:40px 20px;
-    }
-    .home-page h1{
-      font-size:28px;
-      margin:0 0 16px;
-    }
-    .home-page p{
-      font-size:16px;
-      color:var(--muted);
-      margin:0 0 24px;
-    }
-    .home-cats{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      width:100%;
-    }
-    .home-cat{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      padding:16px 20px;
-      border:1.5px solid rgba(255,255,255,.50);
-      border-radius:18px;
-      background:rgba(255,255,255,.35);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      font-size:17px;
-      font-weight:700;
-      color:var(--text);
-      cursor:pointer;
-      box-shadow: 0 8px 24px rgba(80,40,120,.12),
-                  inset 0 1px 0 rgba(255,255,255,.6);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .home-cat:hover{
-      transform: translateY(-4px) scale(1.01);
-      box-shadow: 0 16px 40px rgba(80,40,120,.18),
-                  inset 0 1px 0 rgba(255,255,255,.7);
-      border-color: rgba(255,255,255,.65);
-    }
-    .home-cat.glow{
-      box-shadow:0 0 24px rgba(183,148,246,0.6),
-                  0 8px 32px rgba(183,148,246,0.4),
-                  inset 0 1px 0 rgba(255,255,255,.7);
-      border-color:rgba(183,148,246,0.7);
-      background:rgba(255,255,255,.45);
-      animation: glow-pulse 2s ease-in-out infinite;
-    }
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 24px rgba(183,148,246,0.6), 0 8px 32px rgba(183,148,246,0.4), inset 0 1px 0 rgba(255,255,255,.7); }
-      50% { box-shadow: 0 0 32px rgba(183,148,246,0.8), 0 12px 40px rgba(183,148,246,0.5), inset 0 1px 0 rgba(255,255,255,.8); }
-    }
     .recommendations .rec-content p strong{
       font-weight:700;
     }
@@ -924,79 +870,80 @@
   </style>
 </head>
 <body>
+<!-- Particle Canvas Background -->
+<canvas id="particleCanvas"></canvas>
+
 <div class="app">
-  <header class="topnav">
-    <!-- Top navigation header with brand and toggle button -->
-    <div class="topnav-header">
-      <div class="brand">
-        <div style="font-size:18px;line-height:1">🗂️</div>
-        <div>
-          <h1>Personal Log</h1>
-          <p>健身・日記・學習・收支<br/>資料僅存於本機瀏覽器</p>
-        </div>
-      </div>
-      <!-- Container for home and nav toggle buttons -->
-      <div class="header-controls">
-        <!-- Home button to return to the landing page -->
-        <button id="homeBtn" class="home-toggle" aria-label="首頁">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M3 10 L12 3 L21 10 V21 H14 V14 H10 V21 H3 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
-        </button>
-        <!-- Hamburger button to collapse or expand navigation; text will toggle via JS -->
-        <button id="navToggle" class="nav-toggle" aria-label="切換導航">☰</button>
-      </div>
+  <!-- Tab Navigation Bar -->
+  <header class="tab-nav">
+    <div class="tab-container">
+      <button class="tab-btn active" data-view="fitness">
+        <span class="tab-icon">🏋️</span>
+        <span class="tab-label">健身</span>
+        <div class="tab-indicator"></div>
+      </button>
+      <button class="tab-btn" data-view="diary">
+        <span class="tab-icon">📓</span>
+        <span class="tab-label">日記</span>
+        <div class="tab-indicator"></div>
+      </button>
+      <button class="tab-btn" data-view="learning">
+        <span class="tab-icon">📚</span>
+        <span class="tab-label">學習</span>
+        <div class="tab-indicator"></div>
+      </button>
+      <button class="tab-btn" data-view="finance">
+        <span class="tab-icon">💰</span>
+        <span class="tab-label">收支</span>
+        <div class="tab-indicator"></div>
+      </button>
+      <button class="tab-btn" data-view="overview">
+        <span class="tab-icon">🌟</span>
+        <span class="tab-label">總覽</span>
+        <div class="tab-indicator"></div>
+      </button>
     </div>
-    <!-- Collapsible navigation content: nav buttons, actions and hint -->
-    <div class="nav-content">
-      <div class="nav" id="nav">
-        <!-- 初始不設置 active，首次載入時將預設顯示首頁（view-home） -->
-        <button data-view="fitness"><span class="dot fit"></span> 🏋️ 健身 <span class="small">Workout</span></button>
-        <button data-view="diary"><span class="dot diary"></span> 📓 日記 <span class="small">Diary</span></button>
-        <button data-view="learning"><span class="dot learn"></span> 📚 學習 <span class="small">Learning</span></button>
-        <button data-view="finance"><span class="dot money"></span> 💰 收支 <span class="small">Finance</span></button>
-        <button data-view="overview"><span class="dot overview"></span> 🌟 總覽 <span class="small">Overview</span></button>
-      </div>
-      <div class="top-actions">
-        <button id="btnExport">匯出資料</button>
-        <button id="btnExportImage">匯出圖像</button>
-        <label for="importFile">匯入資料<input id="importFile" type="file" accept="application/json"/></label>
-        <button id="btnReset" class="danger" style="flex-basis:100%">清除所有資料</button>
-      </div>
-      <div style="margin-top:8px" class="hint">建議：偶爾匯出備份。若清除瀏覽器資料，本網站記錄也會一併消失。</div>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button id="btnExport" class="quick-btn" title="匯出資料">💾</button>
+      <button id="btnExportImage" class="quick-btn" title="匯出圖像">🖼️</button>
+      <label for="importFile" class="quick-btn" title="匯入資料">📥<input id="importFile" type="file" accept="application/json" style="display:none"/></label>
+      <button id="btnReset" class="quick-btn danger" title="清除資料">🗑️</button>
     </div>
   </header>
+
   <main class="main">
     <div id="view-fitness" class="view"></div>
     <div id="view-diary" class="view" style="display:none"></div>
     <div id="view-learning" class="view" style="display:none"></div>
     <div id="view-finance" class="view" style="display:none"></div>
     <div id="view-overview" class="view" style="display:none"></div>
-    <div id="view-home" class="view" style="display:none"></div>
   </main>
 
   <!-- Export Image Modal -->
-  <div id="exportImageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:#fffaf5; border-radius:12px; padding:16px; width:90%; max-width:340px; box-shadow: var(--shadow2);">
-      <h3 style="margin-top:0; font-size:16px;">選擇圖像匯出分類</h3>
+  <div id="exportImageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:rgba(20,25,45,.95); border:2px solid var(--neon-cyan); border-radius:6px; padding:20px; width:90%; max-width:340px; box-shadow: 0 0 30px rgba(0,212,255,.5);">
+      <h3 style="margin-top:0; font-size:16px; color:var(--text-bright); text-shadow: 0 0 10px var(--neon-cyan);">選擇圖像匯出分類</h3>
       <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
-        <label style="display:flex; align-items:center; gap:6px;">
+        <label style="display:flex; align-items:center; gap:6px; color:var(--text);">
           <input type="checkbox" id="export_all" /> <span>全選</span>
         </label>
-        <label style="display:flex; align-items:center; gap:6px;">
+        <label style="display:flex; align-items:center; gap:6px; color:var(--text);">
           <input type="checkbox" class="export-cat" value="fitness" /> <span>健身</span>
         </label>
-        <label style="display:flex; align-items:center; gap:6px;">
+        <label style="display:flex; align-items:center; gap:6px; color:var(--text);">
           <input type="checkbox" class="export-cat" value="diary" /> <span>日記</span>
         </label>
-        <label style="display:flex; align-items:center; gap:6px;">
+        <label style="display:flex; align-items:center; gap:6px; color:var(--text);">
           <input type="checkbox" class="export-cat" value="learning" /> <span>學習</span>
         </label>
-        <label style="display:flex; align-items:center; gap:6px;">
+        <label style="display:flex; align-items:center; gap:6px; color:var(--text);">
           <input type="checkbox" class="export-cat" value="finance" /> <span>收支</span>
         </label>
       </div>
       <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button id="exportImageCancel" class="btn" style="padding:6px 12px; border:1px solid var(--border); border-radius:10px; background: rgba(255,255,255,.60);">取消</button>
-        <button id="exportImageConfirm" class="btn primary" style="padding:6px 12px; border:1px solid rgba(210,121,74,.35); border-radius:10px; background: rgba(210,121,74,.18);">匯出</button>
+        <button id="exportImageCancel" class="btn">取消</button>
+        <button id="exportImageConfirm" class="btn primary">匯出</button>
       </div>
     </div>
   </div>
@@ -1124,8 +1071,8 @@ function hasUpdatesToday(view){
 /* =========================
    Navigation & Top Controls
 ========================= */
-// Current view tracking for mobile navigation
-let currentView = 'home';
+// Current view tracking for tab navigation
+let currentView = 'fitness';
 
 // Function to switch view
 function switchToView(view, pushState = true){
@@ -1133,17 +1080,17 @@ function switchToView(view, pushState = true){
 
   currentView = view;
 
-  // record visited state (excluding home which has no nav button)
-  if(view !== 'home') updateVisited(view);
+  // record visited state
+  updateVisited(view);
 
-  // set active nav button
-  const targetBtn = document.querySelector(`.nav button[data-view="${view}"]`);
-  document.querySelectorAll('.nav button').forEach(b=> b.classList.toggle('active', b===targetBtn));
+  // set active tab button
+  const targetBtn = document.querySelector(`.tab-btn[data-view="${view}"]`);
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', b===targetBtn));
 
-  // hide all views including home
+  // hide all views
   document.querySelectorAll('.view').forEach(v=> v.style.display='none');
 
-  // show selected view (home is also view-home)
+  // show selected view
   const viewEl = document.getElementById('view-'+view);
   if(viewEl) viewEl.style.display='block';
 
@@ -1161,20 +1108,20 @@ window.addEventListener('popstate', (e)=>{
   if(e.state && e.state.view){
     switchToView(e.state.view, false);
   }else{
-    // Default to home if no state
-    switchToView('home', false);
+    // Default to fitness if no state
+    switchToView('fitness', false);
   }
 });
 
 // Initialize first state
-history.replaceState({ view: 'home' }, '', '#home');
+history.replaceState({ view: 'fitness' }, '', '#fitness');
 
-const nav = document.getElementById('nav');
-nav.addEventListener('click', (e)=>{
-  const btn = e.target.closest('button[data-view]');
-  if(!btn) return;
-  const view = btn.dataset.view;
-  switchToView(view);
+// Tab navigation event handlers
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    const view = btn.dataset.view;
+    switchToView(view);
+  });
 });
 
 document.getElementById('btnExport').addEventListener('click', ()=>{
@@ -1574,47 +1521,6 @@ function applyCardCollapse(view){
 }
 
 /* =========================
-   Home Page Rendering
-   The landing page presents a friendly prompt and category buttons. Categories
-   not visited today receive a glowing highlight. Clicking a button opens the
-   corresponding view and records the visit.
-========================= */
-function renderHome(){
-  const root = document.getElementById('view-home');
-  if(!root) return;
-  // Determine today's date for highlighting
-  const today = toISODate(new Date());
-  // Build HTML
-  const cats = [
-    {view:'fitness', icon:'🏋️', label:'健身'},
-    {view:'diary', icon:'📓', label:'日記'},
-    {view:'learning', icon:'📚', label:'學習'},
-    {view:'finance', icon:'💰', label:'收支'},
-    {view:'overview', icon:'🌟', label:'總覽'}
-  ];
-  let html = '<div class="home-page">';
-  html += '<h1>Personal Log</h1>';
-  html += '<p>你今天想做些什麼？</p>';
-  html += '<div class="home-cats">';
-  cats.forEach(cat => {
-    // Determine highlight based on whether the category has been updated today
-    const updated = hasUpdatesToday(cat.view);
-    // If not updated today, apply glow highlight to prompt the user to add data
-    const glowClass = updated ? '' : ' glow';
-    html += `<div class="home-cat${glowClass}" data-view="${cat.view}">${cat.icon} ${cat.label}</div>`;
-  });
-  html += '</div></div>';
-  root.innerHTML = html;
-  // Attach click handlers to category buttons
-  root.querySelectorAll('.home-cat').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const view = btn.getAttribute('data-view');
-      switchToView(view);
-    });
-  });
-}
-
-/* =========================
    Overview (人生總覽) Page
    Combines data from all sections to show an overall picture. Displays
    bar charts for record counts and finance totals, and summarises
@@ -1730,10 +1636,11 @@ function fitnessTemplate(){
       </div>\
       <span class="pill fit">Workout</span>\
     </div>\
-    <div class="grid">\
-      <div class="card">\
-        <h3>新增訓練</h3>\
-        <div class="form">\
+    <div class="split-view">\
+      <div class="split-left">\
+        <div class="card">\
+          <h3>新增訓練</h3>\
+          <div class="form">\
           <div class="row"><label>日期</label><input id="fit_date" type="date" /></div>\
           <div class="row"><label>動作/項目</label><select id="fit_exercise">\
             <optgroup label="胸部">\
@@ -1809,28 +1716,27 @@ function fitnessTemplate(){
             實際訓練時間 = (結束-開始) - 休息時間。<br/>\
             若結束時間早於開始時間，視為跨日（例如 23:30 到 00:30）。\
           </div>\
+          </div>\
         </div>\
       </div>\
-      <div class="card">\
-        <div class="split">\
-          <div>\
-            <h3>進步折線圖（重量 / 月）</h3>\
-            <div class="row" style="gap:8px">\
-              <label style="width:80px">選擇動作</label>\
-              <select id="fit_chart_exercise"></select>\
-            </div>\
-            <div class="chart-wrap"><canvas id="fit_line"></canvas></div>\
+      <div class="split-right">\
+        <div class="card">\
+          <h3>進步折線圖（重量 / 月）</h3>\
+          <div class="row" style="gap:8px">\
+            <label style="width:80px">選擇動作</label>\
+            <select id="fit_chart_exercise"></select>\
           </div>\
-          <div>\
-            <h3>月度摘要</h3>\
-            <div class="hint" style="margin-bottom:6px;">右表顯示每月「最高重量」與相對上月進步幅度（Δ）。</div>\
-            <table class="table" id="fit_table">\
-              <thead><tr><th>月份</th><th>重量</th><th>Δ</th></tr></thead>\
-              <tbody></tbody>\
-            </table>\
-          </div>\
+          <div class="chart-wrap"><canvas id="fit_line"></canvas></div>\
         </div>\
-        <div style="margin-top:10px">\
+        <div class="card">\
+          <h3>月度摘要</h3>\
+          <div class="hint" style="margin-bottom:6px;">右表顯示每月「最高重量」與相對上月進步幅度（Δ）。</div>\
+          <table class="table" id="fit_table">\
+            <thead><tr><th>月份</th><th>重量</th><th>Δ</th></tr></thead>\
+            <tbody></tbody>\
+          </table>\
+        </div>\
+        <div class="card">\
           <h3>最近紀錄</h3>\
           <div class="list" id="fit_list"></div>\
         </div>\
@@ -2487,74 +2393,194 @@ function deleteSubscription(id){ state.subscriptions = state.subscriptions.filte
    Render All
 ========================= */
 function renderAll(){
-  const active = document.querySelector('.nav button.active')?.dataset.view || 'home';
+  const active = currentView;
   if(active === 'fitness') renderFitness();
   else if(active === 'diary') renderDiary();
   else if(active === 'learning') renderLearning();
   else if(active === 'finance') renderFinance();
   else if(active === 'overview') renderOverview();
-  else if(active === 'home') renderHome();
   // After rendering, apply collapsible card functionality for sections
-  // other than home and learning. The learning section uses its own
+  // other than learning. The learning section uses its own
   // manual collapse logic defined in renderLearning(), so we skip
   // calling applyCardCollapse for 'learning'.
-  if(active !== 'home' && active !== 'learning'){
+  if(active !== 'learning'){
     applyCardCollapse(active);
   }
 }
 
-// On initial load, ensure the home page is visible. Without this, the
-// home view remains hidden because it has display:none set in the HTML.
-// We call this after renderAll in the boot sequence below.
-function showHomeView(){
-  const homeEl = document.getElementById('view-home');
-  if(homeEl){ homeEl.style.display = 'block'; }
-}
-
 // Boot: load collapsed state for recommendations, load data and render
-// Boot: load collapse and visited state, then render
 loadRecCollapsed();
 loadVisitedDate();
 state = loadStateLocal();
 renderAll();
-// Ensure the home page is visible on initial load
-showHomeView();
-// Initialize navigation collapse toggle and restore previous state
-(() => {
-  const navBtn = document.getElementById('navToggle');
-  const topnavEl = document.querySelector('.topnav');
-  if(navBtn && topnavEl){
-    // restore collapsed state from localStorage
-    let collapsed = false;
-    try{
-      collapsed = localStorage.getItem('navCollapsed') === '1';
-    }catch(e){ collapsed = false; }
-    if(collapsed){ topnavEl.classList.add('collapsed'); navBtn.textContent = '☰'; }
-    else{ navBtn.textContent = '✕'; }
-    navBtn.addEventListener('click', ()=>{
-      const isCollapsed = !topnavEl.classList.contains('collapsed');
-      topnavEl.classList.toggle('collapsed', isCollapsed);
-      navBtn.textContent = isCollapsed ? '☰' : '✕';
-      try{
-        localStorage.setItem('navCollapsed', isCollapsed ? '1' : '0');
-      }catch(e){}
-    });
-  }
-})();
 
-// Attach click handler for the Home button to return to the landing page.
-// This handler hides all other views, deselects any active nav buttons,
-// shows the home view and re-renders it to update glow status based on
-// whether each category has new entries today. It runs immediately
-// during boot once the DOM is ready. Without this, clicking the home
-// button would have no effect.
+/* =========================
+   Particle Canvas Background
+   Flowing particles with network connections and mouse interaction
+========================= */
 (function(){
-  const homeBtn = document.getElementById('homeBtn');
-  if(homeBtn){
-    homeBtn.addEventListener('click', () => {
-      switchToView('home');
-    });
+  const canvas = document.getElementById('particleCanvas');
+  if(!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let mouse = { x: null, y: null, radius: 150 };
+
+  // Resize canvas to fill window
+  function resizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // Particle class
+  class Particle {
+    constructor(){
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.vx = (Math.random() - 0.5) * 0.5;
+      this.vy = (Math.random() - 0.5) * 0.5;
+      this.size = Math.random() * 2 + 1;
+      // Random neon color
+      const colors = ['#00d4ff', '#b537f2', '#ff006e', '#39ff14', '#ff9e00'];
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    update(){
+      // Move particle
+      this.x += this.vx;
+      this.y += this.vy;
+
+      // Wrap around edges
+      if(this.x < 0) this.x = canvas.width;
+      if(this.x > canvas.width) this.x = 0;
+      if(this.y < 0) this.y = canvas.height;
+      if(this.y > canvas.height) this.y = 0;
+
+      // Mouse interaction - repel particles
+      if(mouse.x !== null && mouse.y !== null){
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if(dist < mouse.radius){
+          const force = (mouse.radius - dist) / mouse.radius;
+          const angle = Math.atan2(dy, dx);
+          this.vx += Math.cos(angle) * force * 0.2;
+          this.vy += Math.sin(angle) * force * 0.2;
+        }
+      }
+
+      // Apply friction
+      this.vx *= 0.99;
+      this.vy *= 0.99;
+
+      // Ensure minimum velocity
+      if(Math.abs(this.vx) < 0.1) this.vx += (Math.random() - 0.5) * 0.1;
+      if(Math.abs(this.vy) < 0.1) this.vy += (Math.random() - 0.5) * 0.1;
+    }
+
+    draw(){
+      ctx.fillStyle = this.color;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // Initialize particles
+  const particleCount = Math.min(100, Math.floor((canvas.width * canvas.height) / 15000));
+  for(let i = 0; i < particleCount; i++){
+    particles.push(new Particle());
+  }
+
+  // Connect nearby particles
+  function connectParticles(){
+    const maxDist = 120;
+    for(let i = 0; i < particles.length; i++){
+      for(let j = i + 1; j < particles.length; j++){
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if(dist < maxDist){
+          const opacity = (1 - dist / maxDist) * 0.3;
+          ctx.strokeStyle = `rgba(0, 212, 255, ${opacity})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Mouse trail effect
+  let trail = [];
+  function drawMouseTrail(){
+    if(mouse.x === null || mouse.y === null) return;
+
+    // Add current mouse position to trail
+    trail.push({ x: mouse.x, y: mouse.y, life: 1 });
+
+    // Update and draw trail
+    for(let i = trail.length - 1; i >= 0; i--){
+      const point = trail[i];
+      point.life -= 0.02;
+
+      if(point.life <= 0){
+        trail.splice(i, 1);
+      }else{
+        ctx.fillStyle = `rgba(255, 0, 110, ${point.life * 0.5})`;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff006e';
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 3 * point.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  // Animation loop
+  function animate(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Update and draw particles
+    particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+
+    // Draw connections
+    connectParticles();
+
+    // Draw mouse trail
+    drawMouseTrail();
+
+    requestAnimationFrame(animate);
+  }
+
+  // Mouse move handler
+  canvas.addEventListener('mousemove', (e) => {
+    mouse.x = e.x;
+    mouse.y = e.y;
+  });
+
+  // Mouse leave handler
+  canvas.addEventListener('mouseleave', () => {
+    mouse.x = null;
+    mouse.y = null;
+    trail = [];
+  });
+
+  // Start animation
+  animate();
 })();
 </script>
 </body>
