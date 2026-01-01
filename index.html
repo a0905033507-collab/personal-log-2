@@ -976,7 +976,6 @@
     </div>
     <!-- Quick Actions -->
     <div class="quick-actions">
-      <button id="btnSettings" class="quick-btn" title="設定">⚙️</button>
       <button id="btnExport" class="quick-btn" title="匯出資料">💾</button>
       <button id="btnExportImage" class="quick-btn" title="匯出圖像">🖼️</button>
       <label for="importFile" class="quick-btn" title="匯入資料">📥<input id="importFile" type="file" accept="application/json" style="display:none"/></label>
@@ -1019,28 +1018,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Settings Modal -->
-  <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:rgba(20,25,45,.95); border:2px solid var(--neon-purple); border-radius:6px; padding:20px; width:90%; max-width:400px; box-shadow: 0 0 30px rgba(181,55,242,.5);">
-      <h3 style="margin-top:0; font-size:16px; color:var(--text-bright); text-shadow: 0 0 10px var(--neon-purple);">⚙️ 設定</h3>
-      <div style="margin-bottom:16px;">
-        <label style="display:block; margin-bottom:8px; color:var(--text); font-weight:600;">OpenAI API Key</label>
-        <input id="openaiApiKey" type="password" placeholder="sk-..." style="width:100%; padding:10px; background:rgba(13,15,31,.90); border:1.5px solid var(--border); border-radius:4px; color:var(--text); font-family:monospace; font-size:13px;" />
-        <p style="font-size:11px; color:var(--muted); margin:6px 0 0 0;">輸入 OpenAI API Key 以啟用 AI 生成的行動建議。留空則使用預設建議。</p>
-        <div style="margin-top:8px;">
-          <label style="display:flex; align-items:center; gap:6px; color:var(--text); font-size:12px;">
-            <input type="checkbox" id="useOpenAI" />
-            <span>啟用 OpenAI API 生成建議</span>
-          </label>
-        </div>
-      </div>
-      <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button id="settingsCancel" class="btn">取消</button>
-        <button id="settingsSave" class="btn primary">儲存</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -1051,24 +1028,10 @@
    synchronisation.
 ========================= */
 const STORAGE_KEY = 'personal_log_mobile_v1';
-const OPENAI_SETTINGS_KEY = 'personal_log_openai_settings';
 const defaultState = () => ({ workouts: [], diaries: [], learnings: [], transactions: [], subscriptions: [] });
 let state = defaultState();
 function saveStateLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function loadStateLocal(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return defaultState(); const parsed = JSON.parse(raw); return Object.assign(defaultState(), parsed); }catch(e){ return defaultState(); }}
-
-// OpenAI Settings Storage
-let openAISettings = { apiKey: '', enabled: false };
-function saveOpenAISettings(){ localStorage.setItem(OPENAI_SETTINGS_KEY, JSON.stringify(openAISettings)); }
-function loadOpenAISettings(){
-  try{
-    const raw = localStorage.getItem(OPENAI_SETTINGS_KEY);
-    if(!raw) return { apiKey: '', enabled: false };
-    return JSON.parse(raw);
-  }catch(e){
-    return { apiKey: '', enabled: false };
-  }
-}
 
 /* =========================
    Utilities
@@ -1288,33 +1251,6 @@ document.getElementById('exportImageConfirm').addEventListener('click', ()=>{
   document.getElementById('exportImageModal').style.display = 'none';
   if(cats.length === 0){ alert('請至少選擇一個分類'); return; }
   exportSelectedImages(cats);
-});
-
-// =========================
-//   Settings Modal
-// =========================
-document.getElementById('btnSettings').addEventListener('click', ()=>{
-  // Show modal and load current settings
-  const modal = document.getElementById('settingsModal');
-  modal.style.display = 'flex';
-  document.getElementById('openaiApiKey').value = openAISettings.apiKey || '';
-  document.getElementById('useOpenAI').checked = openAISettings.enabled || false;
-});
-
-// Cancel settings: hide modal
-document.getElementById('settingsCancel').addEventListener('click', ()=>{
-  document.getElementById('settingsModal').style.display = 'none';
-});
-
-// Save settings
-document.getElementById('settingsSave').addEventListener('click', ()=>{
-  openAISettings.apiKey = document.getElementById('openaiApiKey').value.trim();
-  openAISettings.enabled = document.getElementById('useOpenAI').checked;
-  saveOpenAISettings();
-  document.getElementById('settingsModal').style.display = 'none';
-  alert('設定已儲存！');
-  // Re-render current view to apply new settings
-  renderAll();
 });
 
 function downloadURI(uri, name){
@@ -1572,150 +1508,29 @@ function getRecommendations(view){
   return rec;
 }
 
-/* =========================
-   OpenAI API Integration
-   Generates personalized recommendations using OpenAI's API based on user data.
-   Falls back to hardcoded recommendations if API is disabled or fails.
-========================= */
-async function getOpenAIRecommendations(view){
-  if(!openAISettings.enabled || !openAISettings.apiKey){
-    return null;  // Fall back to hardcoded recommendations
-  }
-
-  // Prepare user data summary for the prompt
-  const dataSummary = {
-    workouts: state.workouts.slice(0, 10),
-    diaries: state.diaries.slice(0, 10),
-    learnings: state.learnings.slice(0, 10),
-    transactions: state.transactions.slice(0, 20),
-    subscriptions: state.subscriptions
-  };
-
-  const viewNames = {
-    fitness: '健身',
-    diary: '日記',
-    learning: '學習',
-    finance: '收支',
-    overview: '總覽'
-  };
-
-  const prompt = `你是一個個人成長助理，根據用戶的${viewNames[view] || view}資料，生成個人化的行動建議。
-
-用戶資料摘要：
-${JSON.stringify(dataSummary, null, 2)}
-
-請根據以上資料，針對「${viewNames[view] || view}」類別，生成三個時間範圍的行動建議：
-1. **1天建議**：簡短、具體、可立即執行的行動（不超過50字）
-2. **1週建議**：本週可以完成的目標或習慣（不超過80字）
-3. **1個月建議**：較長期的規劃或改進方向（不超過100字）
-
-請以JSON格式回應，格式如下：
-{
-  "day": "1天建議內容",
-  "week": "1週建議內容",
-  "month": "1個月建議內容"
-}
-
-建議要：
-- 具體且可執行
-- 基於實際資料分析
-- 正面且鼓勵性
-- 適合繁體中文用戶
-- 不要包含程式碼或特殊符號`;
-
-  try{
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openAISettings.apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{
-          role: 'system',
-          content: '你是一個專業的個人成長助理，善於根據用戶資料提供實用的建議。'
-        }, {
-          role: 'user',
-          content: prompt
-        }],
-        temperature: 0.7,
-        max_tokens: 500
-      })
-    });
-
-    if(!response.ok){
-      console.error('OpenAI API error:', response.status, response.statusText);
-      return null;  // Fall back to hardcoded
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-
-    // Try to parse JSON from response
-    try{
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/\{[\s\S]*\}/);
-      if(jsonMatch){
-        const jsonStr = jsonMatch[1] || jsonMatch[0];
-        const parsed = JSON.parse(jsonStr);
-        if(parsed.day && parsed.week && parsed.month){
-          return parsed;
-        }
-      }
-    }catch(parseErr){
-      console.error('Failed to parse OpenAI response:', parseErr);
-    }
-
-    return null;  // Fall back if parsing fails
-  }catch(err){
-    console.error('OpenAI API call failed:', err);
-    return null;  // Fall back to hardcoded
-  }
-}
-
-async function renderRecommendations(view){
+function renderRecommendations(view){
   const root = document.getElementById('view-' + view);
   if(!root) return;
   // remove existing recommendations for this view
   const old = root.querySelector('.recommendations');
   if(old) old.remove();
-
-  // Try to get OpenAI recommendations first, fall back to hardcoded
-  let recs = null;
-  let isAI = false;
-  if(openAISettings.enabled && openAISettings.apiKey){
-    recs = await getOpenAIRecommendations(view);
-    if(recs){
-      isAI = true;
-    }
-  }
-
-  // Fall back to hardcoded recommendations
-  if(!recs){
-    recs = getRecommendations(view);
-  }
-
+  const recs = getRecommendations(view);
   const collapsed = recCollapsed[view] === true;
   // Build container
   const container = document.createElement('div');
   container.className = 'recommendations' + (collapsed ? ' collapsed' : '');
   container.setAttribute('data-view', view);
   const arrowChar = collapsed ? '▶' : '▼';
-  const disclaimer = isAI
-    ? '以上建議由 AI 根據您的資料生成，僅供參考。'
-    : '以上建議由系統依據記錄自動產生，僅供參考。';
-
   container.innerHTML = `\
     <div class="rec-header">\
-      <h4>行動建議${isAI ? ' 🤖' : ''}</h4>\
+      <h4>行動建議</h4>\
       <span class="rec-arrow">${arrowChar}</span>\
     </div>\
     <div class="rec-content">\
       <p><strong>1天：</strong>${escapeHtml(recs.day)}</p>\
       <p><strong>1週：</strong>${escapeHtml(recs.week)}</p>\
       <p><strong>1個月：</strong>${escapeHtml(recs.month)}</p>\
-      <p class="disclaimer">${disclaimer}</p>\
+      <p class="disclaimer">以上建議由系統依據記錄自動產生，僅供參考。</p>\
     </div>`;
   // Toggle collapse on click
   container.querySelector('.rec-header').addEventListener('click', ()=>{
@@ -2009,7 +1824,7 @@ function fitnessTemplate(){
     </div>\
   `;
 }
-async function renderFitness(){
+function renderFitness(){
   const root = document.getElementById('view-fitness');
   root.innerHTML = fitnessTemplate();
   // defaults
@@ -2042,7 +1857,7 @@ async function renderFitness(){
   drawFitnessChart(exList[0] || '');
   renderFitnessList();
   // After rendering lists, show recommendations section
-  await renderRecommendations('fitness');
+  renderRecommendations('fitness');
 }
 function renderFitnessList(){
   const list = document.getElementById('fit_list');
@@ -2139,7 +1954,7 @@ function diaryTemplate(){
     </div>\
   `;
 }
-async function renderDiary(){
+function renderDiary(){
   const root = document.getElementById('view-diary');
   root.innerHTML = diaryTemplate();
   const now = new Date();
@@ -2158,7 +1973,7 @@ async function renderDiary(){
   renderDiaryTree();
   renderDiaryList();
   // Show recommendations section for diary
-  await renderRecommendations('diary');
+  renderRecommendations('diary');
 }
 function renderDiaryTree(){
   const tree = document.getElementById('diary_tree');
@@ -2299,7 +2114,7 @@ function learningTemplate(){
   </div>
 </div>`;
 }
-async function renderLearning(){
+function renderLearning(){
   const root = document.getElementById('view-learning');
   root.innerHTML = learningTemplate();
 
@@ -2342,7 +2157,7 @@ async function renderLearning(){
   renderLearningList();
   renderMindMap();
   // Show recommendations section for learning
-  await renderRecommendations('learning');
+  renderRecommendations('learning');
 
   // Handle image upload and OCR for generating a learning note
   const photoInput = document.getElementById('learn_photo');
@@ -2503,7 +2318,7 @@ function financeTemplate(){
     </div>\
   `;
 }
-async function renderFinance(){
+function renderFinance(){
   const root = document.getElementById('view-finance');
   root.innerHTML = financeTemplate();
   document.getElementById('fin_date').value = toISODate(new Date());
@@ -2535,7 +2350,7 @@ async function renderFinance(){
   renderFinanceList();
   renderSubscriptionList();
   // Show recommendations section for finance
-  await renderRecommendations('finance');
+  renderRecommendations('finance');
 }
 function runSubscriptionAutopost(manual){
   const now = new Date();
@@ -2682,12 +2497,12 @@ function deleteSubscription(id){ state.subscriptions = state.subscriptions.filte
 /* =========================
    Render All
 ========================= */
-async function renderAll(){
+function renderAll(){
   const active = currentView;
-  if(active === 'fitness') await renderFitness();
-  else if(active === 'diary') await renderDiary();
-  else if(active === 'learning') await renderLearning();
-  else if(active === 'finance') await renderFinance();
+  if(active === 'fitness') renderFitness();
+  else if(active === 'diary') renderDiary();
+  else if(active === 'learning') renderLearning();
+  else if(active === 'finance') renderFinance();
   else if(active === 'overview') renderOverview();
   // After rendering, apply collapsible card functionality for sections
   // other than learning. The learning section uses its own
@@ -2702,7 +2517,6 @@ async function renderAll(){
 loadRecCollapsed();
 loadVisitedDate();
 state = loadStateLocal();
-openAISettings = loadOpenAISettings();
 
 // Configure Chart.js global defaults for better visibility on dark background
 if(typeof Chart !== 'undefined'){
