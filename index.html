@@ -859,6 +859,27 @@
       line-height:1.5;
     }
 
+    /* Highlight animation for learning recommendations */
+    @keyframes highlightPulse{
+      0%{
+        box-shadow: 0 0 20px rgba(0,212,255,.2),
+                    0 4px 20px rgba(0,0,0,.6),
+                    inset 0 1px 0 rgba(0,212,255,.1);
+      }
+      50%{
+        box-shadow: 0 0 40px rgba(0,212,255,.8),
+                    0 0 60px rgba(181,55,242,.6),
+                    0 4px 20px rgba(0,0,0,.6),
+                    inset 0 1px 0 rgba(0,212,255,.3);
+        border-color: var(--neon-cyan);
+      }
+      100%{
+        box-shadow: 0 0 20px rgba(0,212,255,.2),
+                    0 4px 20px rgba(0,0,0,.6),
+                    inset 0 1px 0 rgba(0,212,255,.1);
+      }
+    }
+
     /* Collapsible card layout */
     .card.collapsed .card-body{
       /* When a card has the collapsed class, hide its body entirely. Use
@@ -1514,7 +1535,8 @@ function renderRecommendations(view){
   const old = root.querySelector('.recommendations');
   if(old) old.remove();
   const recs = getRecommendations(view);
-  const collapsed = recCollapsed[view] === true;
+  // Force learning recommendations to be expanded by default
+  const collapsed = view === 'learning' ? false : (recCollapsed[view] === true);
   // Build container
   const container = document.createElement('div');
   container.className = 'recommendations' + (collapsed ? ' collapsed' : '');
@@ -1543,6 +1565,17 @@ function renderRecommendations(view){
     saveRecCollapsed();
   });
   root.appendChild(container);
+
+  // For learning view, add a visual indicator by scrolling into view briefly
+  if(view === 'learning'){
+    setTimeout(() => {
+      const recHeader = container.querySelector('.rec-header');
+      if(recHeader){
+        // Add a brief highlight animation
+        container.style.animation = 'highlightPulse 2s ease-out';
+      }
+    }, 100);
+  }
 }
 
 /* =========================
