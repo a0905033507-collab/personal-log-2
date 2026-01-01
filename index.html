@@ -1378,14 +1378,17 @@ function getRecommendations(view){
   }else if(view === 'learning'){
     const items = state.learnings || [];
     if(items.length === 0){
-      rec.day = '挑選一個想學的主題，記錄第一筆學習內容。';
-      rec.week = '設定本週的學習計畫，安排固定的學習時間並記錄重點。';
-      rec.month = '下個月挑戰新的主題或更深入的內容，並更新心智圖。';
+      rec.day = '挑選一個想學的主題，記錄第一筆學習內容。建議從最感興趣或最實用的技能開始。';
+      rec.week = '設定本週的學習計畫：選擇1-2個主題，每天固定30分鐘學習時間，並記錄重點筆記。使用圖片筆記功能快速記錄書籍或螢幕內容。';
+      rec.month = '下個月挑戰新的主題或更深入的內容。建議：(1) 選擇一個可以實踐的項目；(2) 每週生成心智圖檢視學習架構；(3) 將學到的知識應用到實際情境。';
     }else{
       const last = items[0];
-      rec.day = `複習最近學習的「${last.title}」，試著用自己的話整理重點。`;
-      rec.week = '本週為目前的科目安排學習計畫，保持每週至少幾次的練習或閱讀。';
-      rec.month = '每月更新心智圖，梳理已學內容，規劃下一步學習路徑。';
+      const subjects = Array.from(new Set(items.map(x=> x.subject)));
+      const subjectCount = subjects.length;
+
+      rec.day = `複習最近學習的「${last.subject} - ${last.title}」。建議：用自己的話重新整理重點，或找一個實例驗證理解。`;
+      rec.week = `本週持續深入「${last.subject}」主題。已學習 ${subjectCount} 個科目，建議專注其中1-2個進行深度學習，避免分散注意力。每週至少新增3-5筆學習筆記。`;
+      rec.month = `每月更新心智圖，檢視已學內容的關聯性。建議：(1) 每月底生成完整心智圖並截圖保存；(2) 回顧過去一個月的學習軌跡，找出知識盲點；(3) 規劃下月學習路徑，可以考慮跨科目整合（例如將程式與投資結合）。`;
     }
   }else if(view === 'finance'){
     const items = state.transactions || [];
