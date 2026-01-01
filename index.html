@@ -568,6 +568,54 @@
       transform: translateY(0);
     }
 
+    /* Mini button for inline actions */
+    .btn-mini{
+      padding:4px 10px;
+      border:1px solid rgba(0,212,255,.3);
+      border-radius:3px;
+      cursor:pointer;
+      background: rgba(10,12,25,.70);
+      font-size:16px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      color: var(--text);
+      line-height:1;
+    }
+    .btn-mini:hover{
+      background: rgba(20,25,40,.85);
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(0,212,255,.4);
+    }
+    .btn-mini.danger{
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .btn-mini.danger:hover{
+      background: rgba(255,0,64,.15);
+      box-shadow: 0 0 10px rgba(255,0,64,.5);
+    }
+
+    /* Transaction table styling */
+    .transaction-table{
+      font-size:13px;
+    }
+    .transaction-row{
+      border-bottom:1px solid rgba(0,212,255,.1);
+      transition: all 0.2s ease;
+    }
+    .transaction-row:hover{
+      background: rgba(0,212,255,.08);
+    }
+    .transaction-row.expense-row:hover{
+      background: rgba(255,0,110,.05);
+    }
+    .transaction-row.income-row:hover{
+      background: rgba(57,255,20,.05);
+    }
+    .transaction-note{
+      border-bottom:1px solid rgba(0,212,255,.05);
+    }
+
     .list{display:flex;flex-direction:column;gap:12px;}
     .item{
       border:2px solid rgba(0,212,255,.25);
@@ -752,34 +800,45 @@
 
     /* Recommendation section styling */
     .recommendations{
-      border:1.5px solid rgba(255,255,255,.45);
-      background: rgba(255,255,255,.30);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-radius:18px;
-      padding:14px;
+      border:2px solid rgba(0,212,255,.3);
+      background: rgba(10,12,25,.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius:6px;
+      box-shadow: 0 0 20px rgba(0,212,255,.2),
+                  0 4px 20px rgba(0,0,0,.6),
+                  inset 0 1px 0 rgba(0,212,255,.1);
+      padding:0;
       margin-top:16px;
-      box-shadow: 0 6px 24px rgba(80,40,120,.10),
-                  inset 0 1px 0 rgba(255,255,255,.5);
+      transition: all 0.3s ease;
+      position: relative;
     }
-    .recommendations .rec-toggle{
-      width:100%;
+    .recommendations .rec-header{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      background:none;
-      border:none;
-      font-size:14px;
-      font-weight:600;
-      color:var(--text);
       cursor:pointer;
-      padding:6px 4px;
+      user-select:none;
+      padding:18px;
     }
-    .recommendations .rec-toggle:hover{
-      background: rgba(255,255,255,.70);
+    .recommendations .rec-header h4{
+      margin:0;
+      font-size:14px;
+      color:var(--text-bright);
+    }
+    .recommendations .rec-arrow{
+      font-size:16px;
+      transition:transform 0.2s ease;
+      color:var(--text);
+    }
+    .recommendations.collapsed .rec-arrow{
+      transform:rotate(-90deg);
     }
     .recommendations.collapsed .rec-content{
-      display:none;
+      display:none !important;
+    }
+    .recommendations .rec-content{
+      padding:0 18px 18px 18px;
     }
     .recommendations .rec-content p{
       margin:6px 0;
@@ -1447,7 +1506,10 @@ function renderRecommendations(view){
   container.setAttribute('data-view', view);
   const arrowChar = collapsed ? '▶' : '▼';
   container.innerHTML = `\
-    <button class="rec-toggle">${arrowChar} 行動建議</button>\
+    <div class="rec-header">\
+      <h4>行動建議</h4>\
+      <span class="rec-arrow">${arrowChar}</span>\
+    </div>\
     <div class="rec-content">\
       <p><strong>1天：</strong>${escapeHtml(recs.day)}</p>\
       <p><strong>1週：</strong>${escapeHtml(recs.week)}</p>\
@@ -1455,11 +1517,13 @@ function renderRecommendations(view){
       <p class="disclaimer">以上建議由系統依據記錄自動產生，僅供參考。</p>\
     </div>`;
   // Toggle collapse on click
-  container.querySelector('.rec-toggle').addEventListener('click', ()=>{
+  container.querySelector('.rec-header').addEventListener('click', ()=>{
     const isCollapsed = !container.classList.contains('collapsed');
     container.classList.toggle('collapsed', isCollapsed);
-    const newArrow = isCollapsed ? '▶' : '▼';
-    container.querySelector('.rec-toggle').textContent = `${newArrow} 行動建議`;
+    const arrow = container.querySelector('.rec-arrow');
+    if(arrow){
+      arrow.textContent = isCollapsed ? '▶' : '▼';
+    }
     recCollapsed[view] = isCollapsed;
     saveRecCollapsed();
   });
@@ -2350,22 +2414,37 @@ function renderFinanceCharts(){
 function renderFinanceList(){
   const list = document.getElementById('fin_list');
   const items = state.transactions.slice().sort((a,b)=> new Date(b.date) - new Date(a.date)).slice(0, 16);
-  list.innerHTML = items.map(t=>{
+
+  if(items.length === 0){
+    list.innerHTML = `<div class="hint">尚無交易紀錄。</div>`;
+    return;
+  }
+
+  // 簡潔的表格式呈現
+  let html = '<table class="transaction-table" style="width:100%; border-collapse:collapse;">';
+
+  items.forEach((t, idx) => {
     const sign = (t.type==='expense') ? '-' : '+';
-    const tag = (t.type==='expense') ? '支出' : '收入';
-    return `\
-      <div class="item">\
-        <div class="meta">\
-          <span class="tag"><b>${escapeHtml(tag)}</b></span>\
-          <span class="tag">${escapeHtml(t.date)}</span>\
-          <span class="tag">${escapeHtml(t.category)}</span>\
-          <span class="tag">${sign}${escapeHtml(String(t.amount))}</span>\
-        </div>\
-        <div class="hint">${t.note ? escapeHtml(t.note) : '（無備註）'}</div>\
-        <div class="btns" style="margin-top:6px"><button class="btn danger" onclick="deleteTransaction('${t.id}')">刪除</button></div>\
-      </div>\
-    `;
-  }).join('') || `<div class="hint">尚無交易紀錄。</div>`;
+    const typeClass = (t.type==='expense') ? 'expense-row' : 'income-row';
+    const amountColor = (t.type==='expense') ? '#ff006e' : '#39ff14';
+
+    html += `<tr class="transaction-row ${typeClass}">\
+      <td style="padding:10px 8px; font-size:12px; color:var(--muted); white-space:nowrap;">${escapeHtml(t.date)}</td>\
+      <td style="padding:10px 8px; font-weight:600; color:var(--text);">${escapeHtml(t.category)}</td>\
+      <td style="padding:10px 8px; text-align:right; font-weight:700; color:${amountColor}; white-space:nowrap;">${sign}${escapeHtml(String(t.amount))}</td>\
+      <td style="padding:10px 8px; text-align:center;"><button class="btn-mini danger" onclick="deleteTransaction('${t.id}')">×</button></td>\
+    </tr>`;
+
+    // 如果有備註，添加一行顯示備註
+    if(t.note){
+      html += `<tr class="transaction-note ${typeClass}">\
+        <td colspan="4" style="padding:0 8px 8px 8px; font-size:11px; color:var(--muted); font-style:italic;">${escapeHtml(t.note)}</td>\
+      </tr>`;
+    }
+  });
+
+  html += '</table>';
+  list.innerHTML = html;
 }
 function deleteTransaction(id){ state.transactions = state.transactions.filter(t=> t.id!==id); saveStateLocal(); renderAll(); }
 function renderSubscriptionList(){
